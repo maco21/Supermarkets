@@ -1,0 +1,3223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mappa operativa supermercati Roma</title>
+<style>
+:root {
+  --bg: #f5f8fc;
+  --card: #ffffff;
+  --card2: #f8fbff;
+  --muted: #617082;
+  --text: #182233;
+  --line: rgba(24,34,51,.10);
+  --accent: #5f84ff;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:linear-gradient(180deg,#f7fbff,#eef4fb 56%,#eaf1f7); color:var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+a { color: inherit; }
+.wrapper { max-width: 1600px; margin: 0 auto; padding: 18px; }
+.header {
+  display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+  margin-bottom: 16px;
+}
+.titlebox h1 { margin:0 0 6px; font-size: clamp(24px,3vw,38px); }
+.titlebox p { margin:0; color:var(--muted); max-width: 920px; line-height:1.45; }
+.stats { display:flex; gap:10px; flex-wrap:wrap; }
+.stat {
+  background: rgba(255,255,255,.82); border:1px solid var(--line); border-radius: 16px; padding:10px 14px; box-shadow: 0 10px 28px rgba(60,84,120,.08);
+  min-width:100px;
+}
+.stat .n { font-weight:800; font-size: 22px; display:block; }
+.controls {
+  display:grid; grid-template-columns: 1.3fr .7fr .7fr; gap:12px; margin: 14px 0 18px;
+}
+.control {
+  background: rgba(255,255,255,.88); border:1px solid var(--line); border-radius: 16px; padding: 12px 14px; box-shadow: 0 12px 30px rgba(60,84,120,.07);
+}
+.control label { display:block; font-size:13px; color:var(--muted); margin-bottom:7px; }
+.control input,
+.control select {
+  width:100%;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(247,250,255,.94));
+  color: var(--text);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  padding: 11px 12px;
+  font-size:15px;
+  font-family: inherit;
+  line-height: 1.2;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 10px 22px rgba(60,84,120,.08);
+}
+.control select {
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(238,244,251,.78) 50%),
+    linear-gradient(135deg, rgba(238,244,251,.78) 50%, transparent 50%),
+    linear-gradient(180deg, rgba(12,20,35,.98), rgba(13,22,37,.96));
+  background-position:
+    calc(100% - 20px) calc(50% - 2px),
+    calc(100% - 14px) calc(50% - 2px),
+    0 0;
+  background-size: 6px 6px, 6px 6px, 100% 100%;
+  background-repeat:no-repeat;
+  padding-right: 36px;
+  cursor:pointer;
+}
+.control input:focus,
+.control select:focus {
+  outline:none;
+  border-color: rgba(120,167,255,.42);
+  box-shadow: 0 0 0 3px rgba(120,167,255,.14), inset 0 1px 0 rgba(255,255,255,.03);
+}
+.filter-group {
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+.filter-chip {
+  border:1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.78);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease, opacity .15s ease;
+}
+.filter-chip:hover { transform: translateY(-1px); }
+.filter-chip.active {
+  background: rgba(120,167,255,.16);
+  border-color: rgba(120,167,255,.42);
+  box-shadow: 0 0 0 1px rgba(120,167,255,.16) inset;
+}
+.filter-chip.soft-active {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.16);
+}
+.filter-chip.muted { opacity: .48; }
+.filter-meta {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.filter-pill-passive {
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.78);
+  color: var(--text);
+  border-radius:999px;
+  padding:9px 12px;
+  font-size:13px;
+  cursor:default;
+}
+.filter-pill-passive strong { font-weight: 800; }
+.layout { display:grid; grid-template-columns: 1.2fr .8fr; gap:18px; align-items:start; }
+.mapcard, .panel {
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(248,251,255,.92));
+  border:1px solid var(--line); border-radius: 22px; overflow:hidden;
+  box-shadow: 0 12px 32px rgba(0,0,0,.18);
+}
+.maphead, .panelhead {
+  padding:14px 16px; border-bottom:1px solid var(--line); background: rgba(255,255,255,.66);
+}
+.maphead strong, .panelhead strong { display:block; font-size:16px; }
+.maphead span, .panelhead span { color:var(--muted); font-size:13px; }
+.mapwrap { position:relative; aspect-ratio: 1000 / 700; background:
+  radial-gradient(circle at 52% 46%, rgba(120,167,255,.12), transparent 30%),
+  radial-gradient(circle at 28% 72%, rgba(42,157,143,.08), transparent 20%),
+  linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,.00));
+}
+svg { width:100%; height:100%; display:block; }
+.center-dot { fill:#f8fafc; opacity:.7; }
+.ring { fill:none; stroke:rgba(255,255,255,.09); stroke-width:2; stroke-dasharray:9 9; }
+.tiber { fill:none; stroke:rgba(125,211,252,.18); stroke-width:16; stroke-linecap:round; }
+.zoneblob {
+  opacity:.24; cursor:pointer; transition:opacity .18s ease, transform .18s ease, filter .18s ease;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.18));
+}
+.zoneblob:hover { opacity:.34; }
+.zoneblob.active { opacity:.46; }
+.zone-label {
+  pointer-events:none; fill:white; font-weight:800; font-size:18px; text-anchor:middle;
+}
+.zone-sub {
+  pointer-events:none; fill:rgba(255,255,255,.82); font-size:11px; text-anchor:middle;
+}
+.marker {
+  cursor:pointer;
+  transition: opacity .15s ease;
+}
+.marker circle {
+  stroke: rgba(255,255,255,.92);
+  stroke-width: 2.3;
+  vector-effect: non-scaling-stroke;
+  transition: filter .15s ease, opacity .15s ease, stroke .15s ease;
+}
+.marker:hover circle,
+.marker.active circle {
+  stroke: rgba(255,255,255,1);
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.18));
+}
+.marker text {
+  fill: white; font-size: 10px; font-weight: 800; dominant-baseline: middle; text-anchor: middle;
+  pointer-events:none;
+}
+.marker.dimmed { opacity:.18; }
+.marker.included circle {
+  stroke: #36c36a;
+  stroke-width: 3.6;
+}
+.marker.excluded circle {
+  stroke: rgba(148,163,184,.92);
+  stroke-width: 3.1;
+  fill-opacity: .42;
+}
+.marker.excluded text { fill: rgba(255,255,255,.82); }
+.legend {
+  display:flex; flex-wrap:wrap; gap:10px; padding:14px 16px; border-top:1px solid var(--line);
+  background: rgba(255,255,255,.66);
+}
+.legend-item {
+  display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.04); border:1px solid var(--line);
+  border-radius:999px; padding:7px 10px; font-size:13px; cursor:pointer;
+}
+.legend-item.soft-active {
+  background: rgba(120,167,255,.14);
+  border-color: rgba(120,167,255,.34);
+}
+.swatch { width:12px; height:12px; border-radius:999px; display:inline-block; }
+.zonechips {
+  display:flex; gap:8px; flex-wrap:wrap; padding:14px 16px 2px;
+}
+.chip {
+  border:1px solid var(--line); background: rgba(255,255,255,.78); color:var(--text); border-radius:999px; padding:9px 12px;
+  font-size:13px; cursor:pointer;
+}
+.chip.active { outline:2px solid rgba(255,255,255,.18); }
+.panelbody { padding: 12px 16px 16px; }
+.zonecard {
+  background: rgba(255,255,255,.035); border:1px solid var(--line); border-radius: 18px; padding:14px; margin-bottom: 12px;
+}
+.zonecard h2 { margin:0 0 6px; font-size:20px; }
+.zonecard p { margin:0 0 10px; color:var(--muted); font-size:14px; }
+.badges { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.badge {
+  background: rgba(255,255,255,.06); border:1px solid var(--line); border-radius:999px; padding:6px 9px; font-size:12px;
+}
+.list { display:grid; gap:9px; }
+.item {
+  background: #0d1525; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:11px 12px;
+  display:grid; grid-template-columns: 36px 1fr auto; gap:10px; align-items:start;
+}
+.item.included {
+  border-color: rgba(54,195,106,.34);
+  box-shadow: inset 0 0 0 2px rgba(54,195,106,.14);
+}
+.item.excluded {
+  border-color: rgba(148,163,184,.2);
+  box-shadow: inset 0 0 0 2px rgba(148,163,184,.08);
+}
+.selection-tag-included {
+  background: rgba(54,195,106,.12);
+  border-color: rgba(54,195,106,.28);
+  color: #dff7e7;
+}
+.selection-tag-excluded {
+  background: rgba(148,163,184,.10);
+  border-color: rgba(148,163,184,.22);
+  color: #d7e0ea;
+}
+.itemnum {
+  width:36px; height:36px; border-radius:999px; display:grid; place-items:center; color:white; font-weight:800; font-size:13px;
+}
+.item h3 { margin:1px 0 4px; font-size:14px; }
+.addr { color:var(--muted); font-size:13px; line-height:1.35; }
+.meta { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.tag {
+  background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:4px 7px; font-size:11px;
+}
+.mapbtn {
+  white-space:nowrap; text-decoration:none; background: rgba(96,165,250,.12); border:1px solid rgba(96,165,250,.32);
+  border-radius: 12px; padding: 8px 10px; font-size: 13px; align-self:center;
+}
+.hint {
+  margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.45;
+}
+.empty {
+  color:var(--muted); padding:24px 6px 6px; text-align:center;
+}
+.footer {
+  margin-top: 16px; color: var(--muted); font-size: 12px; line-height:1.45;
+}
+
+.routecard {
+  margin-top: 0;
+  border-top: 1px solid var(--line);
+  background: rgba(255,255,255,.018);
+}
+.routehead {
+  padding:14px 16px; border-bottom:1px solid var(--line); background: rgba(255,255,255,.66);
+}
+.routehead strong { display:block; font-size:16px; }
+.routehead span { color:var(--muted); font-size:13px; }
+.routecontrols {
+  display:grid; grid-template-columns: minmax(0,1fr); gap:12px; padding:14px 16px 0;
+}
+.routecontrols .control { margin:0; }
+.routecontrols-single { grid-template-columns:minmax(0,1fr); }
+.routecontextbox-wide { min-width:0; }
+.routebody {
+  padding: 14px 16px 16px;
+}
+.route-summary {
+  display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;
+}
+.route-list {
+  display:grid; gap:10px;
+}
+.route-active-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018)),
+    radial-gradient(circle at top right, rgba(54,195,106,.08), transparent 30%);
+  border-color: rgba(255,255,255,.1);
+}
+.route-active-card .route-minimap-head {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
+    radial-gradient(circle at top right, rgba(54,195,106,.08), transparent 28%);
+}
+.route-active-headline {
+  display:grid;
+  gap:4px;
+}
+.route-active-tools {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  justify-content:flex-start;
+  padding: 0 16px 12px;
+}
+.route-active-tools > * { flex:0 0 auto; }
+.route-active-tools #openDirectionsBtn { flex:1 1 100%; }
+.route-active-tools .mapbtn,
+.route-active-tools .toggle-center-btn {
+  font-size:12px;
+  padding:9px 12px;
+}
+.route-active-tools .routegen-btn { min-width: 220px; font-size: 14px; padding: 11px 16px; }
+.route-active-tools .secondary { min-width: 210px; }
+.route-active-tools .gmaps-btn { flex: 1 1 100%; width:100%; min-width: 0; display:flex; align-items:center; justify-content:center; gap:12px; font-size:15px; font-weight:900; padding: 16px 20px; border-radius: 20px; border: 4px solid transparent; background: linear-gradient(180deg, rgba(255,255,255,.97), rgba(244,248,255,.96)) padding-box, linear-gradient(135deg, #4285F4 0%, #34A853 33%, #FBBC05 66%, #EA4335 100%) border-box; color:#2450b3; box-shadow: 0 16px 36px rgba(86,116,156,.14), inset 0 1px 0 rgba(255,255,255,.78); text-decoration:none; position:relative; overflow:hidden; }
+.route-active-tools .gmaps-btn::before { content:''; position:absolute; inset:0; background: linear-gradient(135deg, rgba(66,133,244,.08), rgba(255,255,255,.00) 38%, rgba(52,168,83,.08) 68%, rgba(234,67,53,.07)); opacity:1; pointer-events:none; }
+.route-active-tools .gmaps-btn::after { content:'◉'; position:absolute; left:18px; width:36px; height:36px; border-radius:14px; display:grid; place-items:center; background: linear-gradient(180deg, #ffffff, #f8fbff); color:#1a73e8; font-weight:900; font-size:18px; box-shadow: 0 8px 18px rgba(86,116,156,.14), inset 0 0 0 1px rgba(66,133,244,.10); }
+.route-active-tools .gmaps-btn span { position:relative; z-index:1; padding-left:38px; letter-spacing:.01em; }
+.route-active-tools .gmaps-btn:hover { transform: translateY(-1px); box-shadow: 0 20px 40px rgba(86,116,156,.18), inset 0 1px 0 rgba(255,255,255,.85); }
+.route-active-tools .gmaps-btn.is-disabled { background: linear-gradient(180deg, #f8fbff, #f2f6fb) padding-box, linear-gradient(135deg, rgba(66,133,244,.30), rgba(52,168,83,.24), rgba(251,188,5,.24), rgba(234,67,53,.26)) border-box; color:#8b9bb0; box-shadow:none; pointer-events:none; }
+.route-active-tools .gmaps-btn.is-disabled::after { background: linear-gradient(180deg, #ffffff, #f4f7fb); color:#9db0c6; box-shadow:none; }
+.route-active-tools .gmaps-btn.is-disabled::before { opacity:.5; }
+.route-inline-section-title { margin: 6px 0 2px; padding: 6px 4px 0; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #8a3b3b; }
+.route-store-dot { display:inline-block; width:10px; height:10px; border-radius:999px; margin-right:8px; vertical-align:middle; }
+.route-store-dot.included { background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.12); }
+.route-store-dot.excluded { background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.10); }
+.route-step-list-flat { display:grid; gap:10px; }
+.route-state-pill { color:#334155; background: rgba(255,255,255,.78); border-color: rgba(24,34,51,.10); }
+.route-state-pill.excluded::before { background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.10); }
+.route-state-pill::before { background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.12); }
+#routeBody { display:none; }
+.route-active-list {
+  display:grid;
+  gap:10px;
+  padding: 0 16px 16px;
+  overflow:auto;
+  max-height: 760px;
+}
+.route-step.active-step {
+  position:relative;
+  cursor: grab;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.route-step.active-step:hover {
+  transform: translateY(-1px);
+}
+.route-step.active-step.dragging {
+  opacity: .78;
+  transform: scale(.992);
+  box-shadow: inset 0 0 0 2px rgba(120,167,255,.18), 0 18px 30px rgba(9,15,24,.28);
+}
+.route-step.active-step.drop-target {
+  border-color: rgba(120,167,255,.52);
+  box-shadow: inset 0 0 0 2px rgba(120,167,255,.24), 0 12px 26px rgba(37,99,235,.16);
+  background: linear-gradient(180deg, rgba(120,167,255,.08), rgba(120,167,255,.035));
+}
+.route-step.active-step.drop-before::before,
+.route-step.active-step.drop-after::after {
+  content:"";
+  position:absolute;
+  left:14px;
+  right:14px;
+  height:5px;
+  border-radius:999px;
+  background: linear-gradient(90deg, rgba(96,165,250,.95), rgba(125,211,252,.98));
+  box-shadow: 0 0 0 4px rgba(96,165,250,.14), 0 10px 22px rgba(37,99,235,.2);
+}
+.route-step.active-step.drop-before::before { top:-3px; }
+.route-step.active-step.drop-after::after { bottom:-3px; }
+.route-step-badges {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.route-step-order {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border-radius:999px;
+  padding:7px 11px;
+  background: rgba(120,167,255,.12);
+  border:1px solid rgba(120,167,255,.22);
+  color:#e8f1ff;
+  font-size:12px;
+  font-weight:800;
+}
+.route-step-handle {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:32px;
+  height:32px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+  color:#475569;
+  font-size:16px;
+  line-height:1;
+  cursor:grab;
+  user-select:none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.route-step.active-step.dragging .route-step-handle {
+  background: rgba(120,167,255,.14);
+  border-color: rgba(120,167,255,.26);
+}
+.route-reorder-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+.route-reorder-btn {
+  min-width: 38px;
+  padding: 8px 10px;
+  line-height:1;
+}
+.route-step-note-inline {
+  margin-top:8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.route-step {
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,251,255,.94)); border:1px solid rgba(24,34,51,.10); border-radius:16px; padding:12px; box-shadow: 0 10px 24px rgba(73,98,130,.08);
+}
+.route-step.is-included {
+  border-color: rgba(24,34,51,.10);
+  box-shadow: 0 10px 24px rgba(73,98,130,.08);
+}
+.route-step.is-excluded {
+  border-color: rgba(225,95,95,.20);
+  box-shadow: 0 10px 22px rgba(73,98,130,.06);
+  opacity: .96;
+  background: linear-gradient(180deg, rgba(255,250,250,.96), rgba(255,246,246,.92));
+}
+.route-step.is-excluded h3,
+.route-step.is-excluded h4 {
+  color: rgba(236,243,251,.9);
+}
+.route-step.is-excluded p { color: rgba(168,183,201,.88); }
+.route-step-list {
+  display:grid;
+  gap:10px;
+}
+.route-section-title {
+  margin: 2px 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #bfdbfe;
+}
+.route-section-title.excluded { color: #cbd5e1; }
+.route-section-stack {
+  display:grid;
+  gap:18px;
+}
+.route-step-actions {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+}
+.toggle-center-btn {
+  border:1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  padding: 8px 11px;
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+.toggle-center-btn:hover { transform: translateY(-1px); }
+.toggle-center-btn.include {
+  background: rgba(34,197,94,.10);
+  border-color: rgba(34,197,94,.22);
+}
+.toggle-center-btn.secondary {
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(247,250,255,.90));
+  border-color: rgba(24,34,51,.12);
+  box-shadow: 0 10px 22px rgba(73,98,130,.08);
+}
+.toggle-center-btn.exclude {
+  background: rgba(248,250,252,.06);
+  border-color: rgba(148,163,184,.24);
+}
+.route-state-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border:1px solid rgba(255,255,255,.11);
+  background: rgba(255,255,255,.045);
+}
+.route-state-pill::before {
+  content:"";
+  width:9px;
+  height:9px;
+  border-radius:999px;
+  background:#36c36a;
+  box-shadow:0 0 0 4px rgba(54,195,106,.12);
+}
+.route-state-pill.excluded::before {
+  background:#94a3b8;
+  box-shadow:0 0 0 4px rgba(148,163,184,.12);
+}
+.route-selection-note {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.route-step-top {
+  display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap;
+}
+.route-step h3, .route-step h4 { margin:0; font-size:15px; }
+.route-step p { margin:0; color:var(--muted); font-size:13px; line-height:1.4; }
+.route-mini {
+  display:grid; gap:8px; margin-top:10px;
+}
+.route-mini-item {
+  display:grid; grid-template-columns: 30px 1fr auto; gap:10px; align-items:start;
+  background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:9px 10px;
+}
+.route-num {
+  width:30px; height:30px; border-radius:999px; display:grid; place-items:center; color:white; font-weight:800; font-size:12px;
+}
+.route-order {
+  font-size: 13px; color: var(--muted); line-height: 1.45; margin-bottom: 12px;
+}
+.route-empty {
+  color:var(--muted); text-align:center; padding:14px 6px 2px;
+}
+.routecontrols {
+  display:grid; grid-template-columns: minmax(0,1fr); gap:12px; padding:14px 16px 0;
+  align-items:stretch;
+}
+.route-detail-control {
+  align-self:stretch;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.028)),
+    radial-gradient(circle at top right, rgba(120,167,255,.08), transparent 30%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+.route-detail-control label {
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.routecontextbox {
+  background:
+    linear-gradient(180deg, rgba(96,165,250,.10), rgba(96,165,250,.06)),
+    radial-gradient(circle at top right, rgba(191,219,254,.12), transparent 32%);
+  border:1px solid rgba(96,165,250,.22);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.routecontexttitle {
+  font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#4f46e5; margin-bottom:5px; font-weight:800;
+}
+.routecontexttext {
+  color: var(--text); line-height:1.45; font-size:14px;
+}
+.routegenbar {
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+.routegen-actions {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.routegen-state {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  font-size:12px;
+  font-weight:700;
+  line-height:1;
+}
+.routegen-state::before {
+  content:"";
+  width:9px;
+  height:9px;
+  border-radius:999px;
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,.12);
+}
+.routegen-state.pending::before {
+  background:#f59e0b;
+  box-shadow:0 0 0 4px rgba(245,158,11,.14);
+}
+.routegen-btn {
+  min-width: 172px;
+  justify-content:center;
+  background: linear-gradient(180deg, rgba(120,167,255,.22), rgba(96,165,250,.12));
+  border-color: rgba(120,167,255,.3);
+  box-shadow: 0 10px 22px rgba(37,99,235,.14);
+}
+.routegen-btn[disabled] {
+  opacity:.64;
+  cursor:default;
+  transform:none !important;
+  box-shadow:none;
+}
+.route-map-shell {
+  position:relative;
+  flex:1 1 auto;
+  display:flex;
+}
+.route-map-overlay {
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-end;
+  padding:18px;
+  background: linear-gradient(180deg, rgba(12,20,35,0), rgba(12,20,35,.02) 48%, rgba(12,20,35,.32));
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .18s ease;
+}
+.route-map-overlay.visible {
+  opacity:1;
+}
+.route-map-overlay-card {
+  max-width: 360px;
+  display:grid;
+  gap:8px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 16px 32px rgba(73,98,130,.16);
+  backdrop-filter: blur(8px);
+  pointer-events:auto;
+}
+.route-map-overlay-card strong { font-size:14px; }
+.route-map-overlay-card span { color: var(--muted); font-size:12px; line-height:1.45; }
+.route-summarybar {
+  padding: 12px 16px 0;
+}
+.route-minimap-card {
+  margin: 4px 0 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,251,255,.94)); border:1px solid rgba(24,34,51,.10); border-radius:18px; overflow:hidden; box-shadow: 0 16px 34px rgba(73,98,130,.10);
+}
+.route-minimap-head {
+  display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;
+  padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
+    radial-gradient(circle at top right, rgba(120,167,255,.09), transparent 26%);
+}
+.route-minimap-head strong { font-size:16px; letter-spacing:.01em; }
+.route-minimap-head span { color:var(--muted); font-size:13px; }
+.route-minimap-caption {
+  padding: 12px 16px 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height:1.52;
+  border-top:1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,.01));
+}
+.route-kpi {
+  min-width: 110px;
+}
+.route-kpi b { color: var(--text); }
+.route-step-note {
+  margin-top:8px; color: var(--muted); font-size:12px;
+}
+
+.route-visual-grid {
+  display:grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(360px, .72fr);
+  gap:16px;
+  margin: 10px 0 18px;
+  align-items:start;
+}
+.route-minimap-card,
+.route-minimap-card.real-map-card {
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+.route-minimap-card.real-map-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.018)),
+    radial-gradient(circle at top right, rgba(120,167,255,.08), transparent 28%);
+  border-color: rgba(255,255,255,.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 18px 34px rgba(4,10,19,.22);
+}
+#routeRealMap {
+  width:100%;
+  min-height: 760px;
+  aspect-ratio: 16 / 9.6;
+  background: linear-gradient(180deg, rgba(248,246,241,.98), rgba(233,239,233,.96));
+  flex:1 1 auto;
+}
+#routeRealMap.leaflet-container {
+  background:#eef3f3;
+}
+#routeRealMap .leaflet-tile {
+  filter: saturate(.88) hue-rotate(-6deg) brightness(1.03) contrast(.96) sepia(.02);
+}
+.route-map-tools {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding: 0 16px 14px;
+}
+.route-map-tools .mapbtn {
+  padding: 9px 12px;
+  font-size: 12px;
+  background: linear-gradient(180deg, rgba(120,167,255,.16), rgba(96,165,250,.11));
+  border-color: rgba(120,167,255,.28);
+  box-shadow: 0 8px 18px rgba(37,99,235,.1);
+}
+.route-map-tools .mapbtn:hover {
+  transform: translateY(-1px);
+}
+.route-live-note {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+
+.route-minimap-head-main {
+  display:grid;
+  gap:4px;
+}
+.cache-toolbar {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.cache-action-btn {
+  min-width: 190px;
+  justify-content:center;
+}
+.cache-action-btn[disabled] {
+  opacity:.72;
+  cursor:progress;
+  transform:none !important;
+}
+.cache-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  align-self:flex-start;
+  background: rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  padding:7px 11px;
+  color: var(--text);
+  font-size:12px;
+  line-height:1;
+  white-space:nowrap;
+}
+.cache-pill::before {
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:#f59e0b;
+  box-shadow:0 0 0 4px rgba(245,158,11,.12);
+}
+.cache-pill.ready::before {
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,.12);
+}
+.cache-pill.warming::before {
+  background:#60a5fa;
+  box-shadow:0 0 0 4px rgba(96,165,250,.12);
+}
+.route-live-dot {
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#34d399;
+  box-shadow: 0 0 0 4px rgba(52,211,153,.14);
+}
+.route-real-fallback {
+  min-height:420px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  padding: 20px;
+  color: var(--muted);
+  line-height:1.5;
+}
+.real-center-icon {
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  color:#0f172a;
+  font-size:18px;
+  font-weight:900;
+  text-shadow: 0 0 6px rgba(255,255,255,.45);
+}
+.real-route-label {
+  background: rgba(255,255,255,.95);
+  color:#182233;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  padding:1px 5px;
+  font-size:9px;
+  font-weight:800;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+}
+.real-point-tooltip {
+  background: rgba(255,255,255,.97);
+  border:1px solid rgba(255,255,255,.14);
+  color: var(--text);
+  border-radius:14px;
+  padding:0;
+  box-shadow: 0 14px 28px rgba(0,0,0,.26);
+}
+.real-point-tooltip .leaflet-tooltip-content {
+  margin:0;
+}
+.real-point-tooltip .tipbox {
+  padding:10px 12px;
+  display:grid;
+  gap:5px;
+  min-width: 220px;
+}
+.real-point-tooltip .tiptitle { font-size:13px; font-weight:800; color:#182233; }
+.real-point-tooltip .tipaddr { font-size:12px; line-height:1.42; color:#475569; }
+.real-point-tooltip .tipmeta { font-size:11px; color:#a8b7c9; }
+.real-point-tooltip .tipaction { font-size:11px; color:#18874a; }
+.real-route-label.excluded-label {
+  background:#f2f5f9;
+  color:#6b7280;
+}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background:#ffffff;
+  color:#182233;
+}
+.leaflet-popup-content { margin: 10px 12px; line-height:1.45; }
+.leaflet-control-attribution,
+.leaflet-control-zoom a {
+  color:#243243;
+  font-family: inherit;
+}
+.leaflet-control-zoom {
+  border: 0 !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.14);
+}
+.leaflet-control-zoom a {
+  background: rgba(255,255,255,.92);
+  border-bottom-color: rgba(36,50,67,.08);
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+}
+.leaflet-control-attribution {
+  background: rgba(255,255,255,.76);
+  border-radius: 10px 0 0 0;
+  padding: 2px 8px;
+  backdrop-filter: blur(6px);
+}
+
+@media (max-width: 920px) {
+  .routecontrols { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 1120px) {
+  .layout { grid-template-columns: 1fr; }
+  .route-visual-grid { grid-template-columns: 1fr; }
+  .route-active-list { max-height: none; }
+}
+@media (max-width: 760px) {
+  .controls { grid-template-columns: 1fr; }
+  .wrapper { padding: 12px; }
+  .item { grid-template-columns: 32px 1fr; }
+  .mapbtn { grid-column: 2; justify-self:start; }
+  #routeRealMap { min-height: 460px; }
+  .routegenbar { flex-direction:column; align-items:stretch; }
+  .routegen-actions { justify-content:space-between; }
+}
+
+
+/* ===== v12 layout + visual refinement ===== */
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --card2: #f8fbff;
+  --muted: #5d6b7a;
+  --text: #1a2d41;
+  --line: #dbe5f0;
+  --line-strong: #c8d7e6;
+  --accent: #4f80ff;
+  --accent-2: #6ea8ff;
+  --accent-soft: #edf4ff;
+  --success: #1faf5b;
+  --success-soft: #ecfdf3;
+  --danger: #db4f5f;
+  --danger-soft: #fff1f2;
+  --shadow: 0 12px 34px rgba(70, 102, 139, .12);
+  --shadow-soft: 0 8px 24px rgba(70, 102, 139, .09);
+}
+html, body {
+  background: linear-gradient(180deg, #f7f9fc 0%, #eef4fb 48%, #f9fbff 100%);
+  color: var(--text);
+}
+.wrapper { max-width: 1720px; padding: 22px; }
+.titlebox p, .maphead span, .panelhead span, .routehead span, .footer, .hint, .routecontexttext, .route-minimap-caption, .addr, .item p, .route-step p { color: var(--muted); }
+.stat,
+.control,
+.mapcard,
+.panel,
+.routecard,
+.zonecard,
+.route-minimap-card,
+.routecontextbox,
+.route-map-overlay-card {
+  background: linear-gradient(180deg, rgba(255,255,255,.97), rgba(248,251,255,.96));
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.header { margin-bottom: 18px; }
+.stat { min-width: 112px; border-radius: 18px; }
+.control { border-radius: 18px; }
+.controls { gap: 14px; margin: 16px 0 20px; }
+.control input,
+.control select {
+  background: #fff !important;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 4px 12px rgba(85,115,145,.05);
+}
+.control input::placeholder { color: #8a97a6; }
+.control select {
+  background-image: none !important;
+  padding-right: 12px;
+}
+.control input:focus,
+.control select:focus {
+  border-color: rgba(79,128,255,.42);
+  box-shadow: 0 0 0 4px rgba(79,128,255,.14);
+}
+.filter-chip,
+.filter-pill-passive,
+.legend-item,
+.chip,
+.badge,
+.tag,
+.route-state-pill,
+.cache-pill {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(85,115,145,.05);
+}
+.filter-chip.active,
+.legend-item.soft-active,
+.chip.active {
+  background: var(--accent-soft);
+  border-color: #bfd2ff;
+  color: #2757ca;
+  box-shadow: 0 0 0 1px rgba(79,128,255,.10) inset, 0 8px 18px rgba(79,128,255,.08);
+}
+.layout {
+  grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr);
+  gap: 20px;
+  align-items: start;
+}
+.mapcard, .panel, .routecard { border-radius: 24px; overflow: hidden; }
+.maphead, .panelhead, .routehead, .route-minimap-head {
+  background: linear-gradient(180deg, #ffffff, #f5f9ff);
+  border-bottom: 1px solid var(--line);
+}
+.mapwrap {
+  background:
+    radial-gradient(circle at 52% 46%, rgba(117, 162, 255, .15), transparent 30%),
+    radial-gradient(circle at 28% 72%, rgba(74, 172, 155, .12), transparent 20%),
+    linear-gradient(180deg, #f9fbff, #eef4fb 65%, #f7fbff);
+}
+.tiber { stroke: rgba(117, 188, 248, .28); }
+.center-dot { fill: rgba(255,255,255,.94); }
+.ring { stroke: rgba(119, 148, 183, .24); }
+.zoneblob { opacity: .28; filter: drop-shadow(0 10px 20px rgba(88, 114, 146, .16)); }
+.zoneblob:hover { opacity: .36; }
+.zoneblob.active { opacity: .46; }
+.legend { background: linear-gradient(180deg, #ffffff, #f6f9fe); }
+.item,
+.route-step,
+.route-active-card {
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  border: 1px solid var(--line);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+.item.included,
+.item.excluded,
+.route-step.is-included,
+.route-step.is-excluded,
+.marker.included circle,
+.marker.excluded circle {
+  box-shadow: none;
+}
+.panelbody .item, .zonecard .item { border-color: var(--line) !important; box-shadow: var(--shadow-soft) !important; }
+.panelbody .item.included, .panelbody .item.excluded { border-color: var(--line) !important; box-shadow: var(--shadow-soft) !important; }
+.panelbody .selection-tag-included, .panelbody .selection-tag-excluded { display:inline-flex !important; }
+.panel-item-actions { display:grid; gap:8px; align-self:center; justify-items:stretch; min-width:132px; }
+.panel-item-actions .mapbtn, .panel-item-actions .route-state-pill { justify-content:center; text-align:center; }
+.panel-item-actions .route-state-pill { margin:0; }
+.panelbody .item { grid-template-columns: 36px minmax(0,1fr) minmax(148px,auto); }
+.panelbody .item .meta { align-items:center; }
+.panelbody .route-state-pill.selection-tag-included { background: #ecfdf3; border-color: #b9e8c7; color: #1f7a47; }
+.panelbody .route-state-pill.selection-tag-excluded { background: #fff1f2; border-color: #fecdd3; color: #b33a4a; }
+.itemnum,
+.route-num {
+  background: linear-gradient(180deg, #eff5ff, #dfeafe);
+  color: #2554bf;
+  box-shadow: inset 0 0 0 1px rgba(79,128,255,.12);
+}
+.tag { color: #4e6073; }
+.mapbtn,
+.toggle-center-btn,
+.routegen-btn {
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 10px 13px;
+  background: linear-gradient(180deg, #ffffff, #f3f8ff);
+  color: var(--text);
+  box-shadow: 0 8px 22px rgba(79,128,255,.08);
+}
+.mapbtn:hover,
+.toggle-center-btn:hover,
+.routegen-btn:hover { transform: translateY(-1px); }
+#generateRouteBtn,
+.route-active-tools .routegen-btn {
+  background: linear-gradient(135deg, #4f80ff, #6ea8ff);
+  border-color: #4f80ff;
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(79,128,255,.26);
+}
+#generateRouteBtn[disabled] {
+  background: linear-gradient(180deg, #dbe7ff, #eaf1ff);
+  border-color: #d3ddf5;
+  color: #6f84a3;
+  box-shadow: none;
+}
+#generateAutoRouteBtn {
+  background: linear-gradient(180deg, #edf4ff, #e0ecff);
+  border-color: #bfd2ff;
+  color: #2354c6;
+}
+#restoreVisibleBtnTop,
+.toggle-center-btn.include {
+  background: linear-gradient(180deg, #ecfdf3, #dcf8e7);
+  border-color: #b9e8c7;
+  color: #1f7a47;
+}
+.toggle-center-btn.exclude {
+  background: linear-gradient(180deg, #fff3f4, #ffe7ea);
+  border-color: #f5c7ce;
+  color: #b33a4a;
+}
+.routegenbar {
+  background: linear-gradient(180deg, #f7fbff, #f0f6ff);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 20px rgba(90,118,151,.07);
+}
+.routegen-state {
+  background: #eef7ff;
+  border: 1px solid #cfe1ff;
+  color: #2554bf;
+}
+.routegen-state.pending {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+.route-stage {
+  margin-top: 20px;
+}
+.route-stage .routecard {
+  border-top: 1px solid var(--line);
+}
+.route-stage .routebody {
+  padding-top: 16px;
+}
+.route-stage .route-visual-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(360px, .82fr);
+  gap: 20px;
+  align-items: start;
+}
+.route-stage .real-map-card,
+.route-stage .active-route-card {
+  min-width: 0;
+}
+.route-stage .active-route-card {
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+}
+.route-stage .active-route-card .route-active-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+#routeRealMap {
+  min-height: 780px;
+  height: min(75vh, 860px);
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: linear-gradient(180deg, #eef4ef, #edf5fb 70%, #f7fbff);
+}
+#routeRealMap.leaflet-container { background: #eef5ef; }
+#routeRealMap .leaflet-tile {
+  filter: saturate(.82) hue-rotate(-8deg) brightness(1.04) contrast(.96) sepia(.06);
+}
+.route-map-shell {
+  padding: 0 16px 16px;
+}
+.route-map-overlay-card {
+  border-radius: 18px;
+}
+.route-minimap-card.real-map-card,
+.route-minimap-card.active-route-card,
+.route-active-card {
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  border-color: var(--line);
+}
+.route-active-list {
+  max-height: min(75vh, 860px);
+  overflow: auto;
+  padding-bottom: 18px;
+}
+.panelbody {
+  max-height: 780px;
+  overflow: auto;
+}
+.route-step.active-step:hover { transform: translateY(-1px); }
+.route-step.active-step.dragging {
+  opacity: .85;
+  box-shadow: 0 14px 28px rgba(79,128,255,.20), 0 0 0 2px rgba(79,128,255,.16);
+}
+.route-step.active-step.drop-target {
+  border-color: #8db3ff;
+  box-shadow: 0 0 0 2px rgba(79,128,255,.18), 0 16px 28px rgba(79,128,255,.16);
+  background: linear-gradient(180deg, #f3f8ff, #eaf2ff);
+}
+.route-step.active-step.drop-before::before,
+.route-step.active-step.drop-after::after {
+  background: linear-gradient(90deg, #4f80ff, #86b3ff);
+  box-shadow: 0 0 0 4px rgba(79,128,255,.12), 0 8px 20px rgba(79,128,255,.16);
+}
+.route-step-order {
+  background: #edf4ff;
+  border-color: #cfe0ff;
+  color: #2554bf;
+}
+.route-step-handle {
+  background: #f3f7fc;
+  border: 1px dashed #cdd9e6;
+  color: #789;
+}
+.route-step.is-excluded {
+  background: linear-gradient(180deg, #fff8f8, #fff2f3);
+  border-color: #f2d0d6;
+}
+.route-inline-section-title,
+.route-section-title {
+  color: #7a8ba0;
+}
+.route-section-title.excluded {
+  color: #b34a56;
+}
+.route-store-dot.included,
+.route-state-pill::before {
+  background: var(--success);
+  box-shadow: 0 0 0 4px rgba(31,175,91,.12);
+}
+.route-store-dot.excluded,
+.route-state-pill.excluded::before {
+  background: var(--danger);
+  box-shadow: 0 0 0 4px rgba(219,79,95,.10);
+}
+.selection-tag-excluded {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #b33a4a;
+}
+.selection-tag-included {
+  background: #ecfdf3;
+  border-color: #b9e8c7;
+  color: #1f7a47;
+}
+.marker circle {
+  stroke: rgba(255,255,255,.95);
+  stroke-width: 2.1;
+}
+.marker text { font-size: 9px; }
+.marker.included circle,
+.marker.excluded circle {
+  stroke: rgba(255,255,255,.95);
+  stroke-width: 2.1;
+}
+.marker.excluded { opacity: .6; }
+.marker.extra circle { stroke:#2563eb; stroke-width:3.2; filter: drop-shadow(0 0 10px rgba(37,99,235,.18)); }
+.marker.extra text { fill:#ffffff; }
+.marker.in-perimeter circle { stroke:#ffffff; stroke-width:2.4; }
+.route-summarybar { padding: 0 16px; }
+.route-summary { padding-top: 12px; margin-bottom: 2px; }
+.zonechips { padding: 14px 16px 6px; }
+.real-route-label {
+  border: 1px solid rgba(255,255,255,.85);
+  box-shadow: 0 8px 22px rgba(79,128,255,.12);
+}
+#openDirectionsBtn {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96)) padding-box,
+    linear-gradient(90deg, #4285F4 0 34%, #34A853 34% 58%, #FBBC05 58% 78%, #EA4335 78% 100%) border-box;
+  color: #20426d;
+  border: 3px solid transparent;
+  box-shadow: 0 16px 34px rgba(66,133,244,.16);
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+#openDirectionsBtn span {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+}
+#openDirectionsBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(66,133,244,.20);
+}
+#openDirectionsBtn.is-disabled {
+  opacity:.66;
+  box-shadow:none;
+}
+.footer { margin-top: 18px; }
+@media (max-width: 1120px) {
+  .controls { grid-template-columns: 1fr; }
+  .layout { grid-template-columns: 1fr; }
+  .panel { order: 2; }
+  .route-stage .route-visual-grid { grid-template-columns: 1fr; }
+  #routeRealMap { min-height: 540px; height: 62vh; }
+  .panelbody, .route-active-list { max-height: none; }
+}
+
+
+
+
+.route-stage .active-route-card.synced-height {
+  overflow: hidden;
+}
+.marker.in-perimeter.excluded circle {
+  fill: rgba(148,163,184,.85);
+  stroke: rgba(255,255,255,.98);
+  stroke-width: 2.4;
+}
+.marker.in-perimeter.included circle {
+  fill-opacity: 1;
+}
+.marker.in-perimeter.excluded text {
+  fill: rgba(255,255,255,.94);
+}
+
+/* ===== only panel-height alignment patch ===== */
+.layout { align-items: stretch !important; }
+.panel { display: flex; flex-direction: column; min-height: 100%; }
+.panelbody { flex: 1 1 auto; overflow: auto; }
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="titlebox">
+      <h1>Mappa operativa supermercati — Roma</h1>
+      <p>Questa è una <strong>mappa visuale schematica ma utilizzabile</strong>: le aree sono organizzate per vicinanza operativa, ogni marker è cliccabile e ogni riga apre l'indirizzo esatto su Google Maps. Così puoi usare le zone per pianificare i controlli senza perdere tempo a rimbalzare tra quadranti diversi.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="n">90</span> punti vendita</div>
+      <div class="stat"><span class="n">8</span> zone operative</div>
+      <div class="stat"><span class="n">3</span> gruppi PdV</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="control">
+      <label for="search">Cerca insegna o indirizzo</label>
+      <input id="search" type="text" placeholder="Es. Tuscolana, Conad, Ostia, Laurentina…">
+    </div>
+    <div class="control">
+      <label>Filtro PdV Group</label>
+      <div class="filter-group" id="groupFilter"></div>
+      <div class="filter-meta" id="groupFilterMeta">Se non selezioni nulla, restano inclusi tutti i gruppi.</div>
+    </div>
+    <div class="control">
+      <label>Zone operative</label>
+      <div class="filter-group" id="zoneFilter"></div>
+      <div class="filter-meta" id="zoneFilterMeta">Le zone si selezionano qui sopra oppure cliccando la mappa; il pannello laterale sotto le riporta solo in elenco.</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="mapcard">
+      <div class="maphead">
+        <strong>Vista territoriale</strong>
+        <span>I punti sono posizionati in modo <em>schematico</em> dentro il quadrante corretto; cliccando zona, legenda o marker sincronizzi direttamente i filtri superiori.</span>
+      </div>
+      <div class="mapwrap">
+        <svg viewBox="0 0 1000 700" aria-label="Mappa operativa dei supermercati di Roma">
+          <ellipse class="ring" cx="500" cy="350" rx="320" ry="220"></ellipse>
+          <circle class="center-dot" cx="500" cy="350" r="7"></circle>
+          <path class="tiber" d="M330 40 C300 110, 360 160, 390 210 S420 300, 400 360 S350 470, 360 540 S410 620, 450 670"></path>
+          <g id="zonesLayer"></g>
+          <g id="markersLayer"></g>
+        </svg>
+      </div>
+      <div class="legend" id="legend"></div>
+
+      
+
+    </section>
+
+    <aside class="panel">
+      <div class="panelhead">
+        <strong id="panelTitle">Centri nel perimetro attivo</strong>
+        <span id="panelSubtitle">L'elenco sotto riflette solo i filtri selezionati sopra.</span>
+      </div>
+      <div class="zonechips" id="zoneChips"></div>
+      <div class="panelbody" id="panelBody"></div>
+    </aside>
+  </div>
+
+
+  <section class="route-stage">
+<div class="routecard">
+        <div class="routehead">
+          <strong>Percorso consigliato</strong>
+          <span>Questo blocco non filtra nulla: usa sempre e solo i punti già visibili sopra, e li ordina nel modo più pratico possibile.</span>
+        </div>
+        <div class="route-summarybar">
+          <div class="badges route-summary" id="routeSummary"></div>
+        </div>
+        <div class="routebody">
+          <div class="route-order" id="routeOrder"></div>
+          <div class="route-visual-grid">
+            <div class="route-minimap-card real-map-card">
+              <div class="route-minimap-head real-map-head">
+                <div class="route-minimap-head-main">
+                  <strong>Anteprima su mappa reale del percorso</strong>
+                  <span id="routeRealStatus"><span class="route-live-note"><span class="route-live-dot"></span>Vista cartografica grande, centrata sul perimetro attivo</span></span>
+                </div>
+                <div class="cache-toolbar">
+                  <div class="cache-pill" id="geoCacheStatus">Cache locale 0/90</div>
+                  <button class="mapbtn cache-action-btn" id="forceCacheBtn" type="button">Completa cache locale</button>
+                </div>
+              </div>
+              <div class="route-map-shell">
+                <div id="routeRealMap" aria-label="Anteprima su mappa reale del percorso consigliato"></div>
+                <div class="route-map-overlay" id="routeMapOverlay">
+                  <div class="route-map-overlay-card">
+                    <strong>Anteprima da rigenerare</strong>
+                    <span>Hai modifiche in sospeso. La mappa resta ferma per evitare refresh continui mentre sistemi il giro.</span>
+                  </div>
+                </div>
+              </div>
+              <div class="route-minimap-caption" id="routeRealCaption">La preview reale migliora progressivamente man mano che la cache locale completa i centri non ancora risolti.</div>
+            </div>
+            <div class="route-minimap-card active-route-card">
+              <div class="route-minimap-head">
+                <div class="route-active-headline">
+                  <strong>Percorso attivo</strong>
+                  <span id="activeRouteStatus">L’ordine qui a destra governa numeri, tracciato e link rapidi sulla mappa reale.</span>
+                </div>
+              </div>
+              <div class="routecontextbox routecontextbox-wide" style="margin:0 16px 12px;">
+                <div class="routegenbar">
+                  <div>
+                    <div class="routecontexttitle">Perimetro attivo</div>
+                    <div class="routecontexttext" id="routeContext">Tutte le zone visibili, senza ulteriori restrizioni.</div>
+                  </div>
+                  <div class="routegen-actions">
+                    <div class="routegen-state" id="routeDirtyState">Percorso allineato</div>
+                  </div>
+                </div>
+              </div>
+              <div class="route-active-tools">
+                <button class="mapbtn routegen-btn" id="generateRouteBtn" type="button" disabled>Genera percorso</button>
+                <button class="toggle-center-btn include secondary" id="generateAutoRouteBtn" type="button">Genera percorso automatico</button>
+                <button class="toggle-center-btn" id="restoreVisibleBtnTop" type="button">Reincludi tutti i visibili</button>
+                <a class="mapbtn gmaps-btn is-disabled" id="openDirectionsBtn" href="#" target="_blank" rel="noopener" aria-disabled="true"><span>Apri Itinerario Google Maps</span></a>
+              </div>
+              <div class="route-active-list" id="activeRouteList"></div>
+            </div>
+          </div>
+          <div class="route-list" id="routeBody"></div>
+        </div>
+      </div>
+  </section>
+
+  <div class="footer">
+    Suggerimento pratico: apri questo file dal telefono, seleziona la zona del giorno e usa i pulsanti <em>Google Maps</em> per lanciare subito la navigazione sul civico corretto.
+  </div>
+</div>
+
+<script>
+const zoneDefs = {"Z1": {"name": "Nord-Ovest", "subtitle": "Vaticano • Aurelio • Balduina • Prati", "color": "#5b8def", "cx": 180, "cy": 150, "rx": 115, "ry": 78}, "Z2": {"name": "Nord", "subtitle": "Nomentana • Tiburtina • San Basilio", "color": "#48a9c5", "cx": 410, "cy": 120, "rx": 125, "ry": 76}, "Z3": {"name": "Est urbano", "subtitle": "Prenestina • Collatina • Centocelle", "color": "#8c6ade", "cx": 610, "cy": 250, "rx": 130, "ry": 82}, "Z4": {"name": "Est esterno", "subtitle": "Tor Bella Monaca • Pantano • Castel Verde", "color": "#d87ca0", "cx": 770, "cy": 150, "rx": 130, "ry": 80}, "Z5": {"name": "Sud-Est", "subtitle": "Tuscolana • Appia • Romanina • Ciampino", "color": "#e67e5f", "cx": 690, "cy": 430, "rx": 165, "ry": 105}, "Z6": {"name": "Sud", "subtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "color": "#cfa24b", "cx": 450, "cy": 455, "rx": 150, "ry": 92}, "Z7": {"name": "Sud-Ovest", "subtitle": "Trastevere • Portuense • Magliana", "color": "#67b26f", "cx": 240, "cy": 430, "rx": 145, "ry": 90}, "Z8": {"name": "Litorale", "subtitle": "Ostiense • Acilia • Infernetto • Ostia", "color": "#2a9d8f", "cx": 80, "cy": 580, "rx": 150, "ry": 85}};
+const zoneOrder = ["Z1", "Z2", "Z3", "Z4", "Z5", "Z6", "Z7", "Z8"];
+const zoneRealDefs = {
+  "Z1": {lat: 41.9106, lng: 12.4459},
+  "Z2": {lat: 41.9348, lng: 12.5532},
+  "Z3": {lat: 41.8910, lng: 12.5856},
+  "Z4": {lat: 41.8651, lng: 12.6765},
+  "Z5": {lat: 41.8315, lng: 12.5646},
+  "Z6": {lat: 41.8178, lng: 12.4998},
+  "Z7": {lat: 41.8549, lng: 12.4418},
+  "Z8": {lat: 41.7485, lng: 12.3253}
+};
+
+const stores = [{"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 1, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "PIAZZA SAN GIOVANNI BATTISTA DE LA SALLE 36", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PIAZZA%20SAN%20GIOVANNI%20BATTISTA%20DE%20LA%20SALLE%2036%2C%20Roma%2C%20Italia", "x": 100.9, "y": 100.2}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 2, "insegna": "AGORA PIAZZA DEL FRESCO", "indirizzo": "VIA GREGORIO VII 220/246", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20GREGORIO%20VII%20220/246%2C%20Roma%2C%20Italia", "x": 153.2, "y": 99.3}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 3, "insegna": "SUPERMERCATI PIM", "indirizzo": "VIA ANTONIO SANT'ELIA 13", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ANTONIO%20SANT%27ELIA%2013%2C%20Roma%2C%20Italia", "x": 206.8, "y": 99.3}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 4, "insegna": "CARREFOUR MARKET", "indirizzo": "PIAZZALE DEGLI EROI 11/13", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PIAZZALE%20DEGLI%20EROI%2011/13%2C%20Roma%2C%20Italia", "x": 259.1, "y": 100.2}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 5, "insegna": "CARREFOUR MARKET", "indirizzo": "PIAZZALE EUGENIO MORELLI 52", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PIAZZALE%20EUGENIO%20MORELLI%2052%2C%20Roma%2C%20Italia", "x": 105.5, "y": 200.7}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 6, "insegna": "SUPERMERCATI EFFEPIU'", "indirizzo": "VIA DOBBIACO 1", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DOBBIACO%201%2C%20Roma%2C%20Italia", "x": 159.2, "y": 200.7}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 7, "insegna": "PAM SUPERSTORE", "indirizzo": "VIA DI VALLE AURELIA 30/62", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20VALLE%20AURELIA%2030/62%2C%20Roma%2C%20Italia", "x": 212.8, "y": 200.7}, {"zone": "Z1", "zoneName": "Nord-Ovest", "zoneSubtitle": "Vaticano • Aurelio • Balduina • Prati", "seq": 8, "insegna": "PEWEX CITY", "indirizzo": "VIA COSTANTINO MORIN 32/36", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20COSTANTINO%20MORIN%2032/36%2C%20Roma%2C%20Italia", "x": 261.6, "y": 197.8}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 1, "insegna": "CARREFOUR", "indirizzo": "VIA NICCODEMI DARIO 103", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20NICCODEMI%20DARIO%20103%2C%20Roma%2C%20Italia", "x": 324.1, "y": 71.5}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 2, "insegna": "AGORA PIAZZA DEL FRESCO", "indirizzo": "VIA CASAL TIDEI", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CASAL%20TIDEI%2C%20Roma%2C%20Italia", "x": 380.8, "y": 70.6}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 3, "insegna": "AGORA PIAZZA DEL FRESCO", "indirizzo": "PIAZZALE CADUTI DEI MILITARI NEI LAGER 42", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PIAZZALE%20CADUTI%20DEI%20MILITARI%20NEI%20LAGER%2042%2C%20Roma%2C%20Italia", "x": 439.2, "y": 70.6}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 4, "insegna": "PANORAMA", "indirizzo": "VIA TIBURTINA 757", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TIBURTINA%20757%2C%20Roma%2C%20Italia", "x": 495.9, "y": 71.5}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 9, "insegna": "CONAD", "indirizzo": "PIAZZA BOLOGNA 60", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PIAZZA%20BOLOGNA%2060%2C%20Roma%2C%20Italia", "x": 354.0, "y": 119.0}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 5, "insegna": "SPAZIO CONAD", "indirizzo": "VIA ALBERTO POLLIO 50", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ALBERTO%20POLLIO%2050%2C%20Roma%2C%20Italia", "x": 328.5, "y": 169.4}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 6, "insegna": "IPERTRISCOUNT", "indirizzo": "VIA PORTONACCIO 72", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20PORTONACCIO%2072%2C%20Roma%2C%20Italia", "x": 386.8, "y": 169.4}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 7, "insegna": "MA SUPERMERCATI", "indirizzo": "VIA TIBURTINA 472", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TIBURTINA%20472%2C%20Roma%2C%20Italia", "x": 445.2, "y": 169.4}, {"zone": "Z2", "zoneName": "Nord", "zoneSubtitle": "Nomentana • Tiburtina • San Basilio", "seq": 8, "insegna": "MA SUPERMERCATI", "indirizzo": "VIA TIBURTINA 435", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TIBURTINA%20435%2C%20Roma%2C%20Italia", "x": 498.5, "y": 166.8}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 1, "insegna": "SPAZIO CONAD", "indirizzo": "VIALE GIOVANNI BATTISTA VALENTE 190", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIALE%20GIOVANNI%20BATTISTA%20VALENTE%20190%2C%20Roma%2C%20Italia", "x": 520.6, "y": 197.7}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 2, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA D'ONOFRIO EDOARDO 140", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20D%27ONOFRIO%20EDOARDO%20140%2C%20Roma%2C%20Italia", "x": 579.7, "y": 196.7}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 3, "insegna": "CARREFOUR MARKET", "indirizzo": "VIA CASILINA 288", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CASILINA%20288%2C%20Roma%2C%20Italia", "x": 640.3, "y": 196.7}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 4, "insegna": "PANORAMA", "indirizzo": "VIA COLLATINA 858", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20COLLATINA%20858%2C%20Roma%2C%20Italia", "x": 699.4, "y": 197.7}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 5, "insegna": "CTS SUPERMERCATI", "indirizzo": "VIA DEGLI ALBERINI 19", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DEGLI%20ALBERINI%2019%2C%20Roma%2C%20Italia", "x": 525.0, "y": 303.3}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 6, "insegna": "SUPERMERCATI IL CASTORO", "indirizzo": "VIA ERASMO GATTAMELATA 124", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ERASMO%20GATTAMELATA%20124%2C%20Roma%2C%20Italia", "x": 585.7, "y": 303.3}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 7, "insegna": "COOP", "indirizzo": "LARGO AGOSTA 26", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=LARGO%20AGOSTA%2026%2C%20Roma%2C%20Italia", "x": 646.3, "y": 303.3}, {"zone": "Z3", "zoneName": "Est urbano", "zoneSubtitle": "Prenestina • Collatina • Centocelle", "seq": 8, "insegna": "CONAD", "indirizzo": "VIA FRANCESCO TOVAGLIERI 21/23", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20FRANCESCO%20TOVAGLIERI%2021/23%2C%20Roma%2C%20Italia", "x": 702.0, "y": 300.5}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 1, "insegna": "IPER PEWEX", "indirizzo": "VIA DI TOR BELLA MONACA 495", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20TOR%20BELLA%20MONACA%20495%2C%20Roma%2C%20Italia", "x": 680.6, "y": 98.9}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 2, "insegna": "IPER DEM", "indirizzo": "VIA CILIEGIE 100", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CILIEGIE%20100%2C%20Roma%2C%20Italia", "x": 739.7, "y": 98.0}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 3, "insegna": "IPER PEWEX", "indirizzo": "VIA CASILINA KM 20.800", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CASILINA%20KM%2020.800%2C%20Roma%2C%20Italia", "x": 800.3, "y": 98.0}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 4, "insegna": "IPERTRISCOUNT", "indirizzo": "VIA CARLO SANTARELLI 89/91", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CARLO%20SANTARELLI%2089/91%2C%20Roma%2C%20Italia", "x": 859.4, "y": 98.9}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 5, "insegna": "OASI", "indirizzo": "VIA PRENESTINA NUOVA", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20PRENESTINA%20NUOVA%2C%20Roma%2C%20Italia", "x": 685.0, "y": 202.0}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 6, "insegna": "CONAD", "indirizzo": "VIA MASSA DI SAN GIULIANO 279", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20MASSA%20DI%20SAN%20GIULIANO%20279%2C%20Roma%2C%20Italia", "x": 745.7, "y": 202.0}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 7, "insegna": "IPERCOOP", "indirizzo": "VIA CASILINA 1011", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CASILINA%201011%2C%20Roma%2C%20Italia", "x": 806.3, "y": 202.0}, {"zone": "Z4", "zoneName": "Est esterno", "zoneSubtitle": "Tor Bella Monaca • Pantano • Castel Verde", "seq": 8, "insegna": "CONAD", "indirizzo": "PIAZZA DEI DECEMVIRI 6 A", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PIAZZA%20DEI%20DECEMVIRI%206%20A%2C%20Roma%2C%20Italia", "x": 862.0, "y": 199.3}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 1, "insegna": "IPER PEWEX", "indirizzo": "VIALE PALMIRO TOGLIATTI 2", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIALE%20PALMIRO%20TOGLIATTI%202%2C%20Roma%2C%20Italia", "x": 576.6, "y": 363.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 2, "insegna": "IPER PEWEX", "indirizzo": "VIALE KENNEDY 80", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIALE%20KENNEDY%2080%2C%20Roma%2C%20Italia", "x": 632.2, "y": 361.8}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 3, "insegna": "IPER PEWEX", "indirizzo": "VIA ANILE ANTONIO", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ANILE%20ANTONIO%2C%20Roma%2C%20Italia", "x": 690.0, "y": 361.8}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 4, "insegna": "IPERTRISCOUNT", "indirizzo": "VIA ENRICO FERRI 8", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ENRICO%20FERRI%208%2C%20Roma%2C%20Italia", "x": 747.8, "y": 361.8}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 5, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA TUSCOLANA 52/56", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TUSCOLANA%2052/56%2C%20Roma%2C%20Italia", "x": 803.4, "y": 363.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 6, "insegna": "IPER DEM", "indirizzo": "VIA TUSCOLANA 761", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TUSCOLANA%20761%2C%20Roma%2C%20Italia", "x": 580.5, "y": 395.9}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 7, "insegna": "DEM", "indirizzo": "VIA MURA DEI FRANCESI 1", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20MURA%20DEI%20FRANCESI%201%2C%20Roma%2C%20Italia", "x": 638.2, "y": 395.9}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 8, "insegna": "CARREFOUR", "indirizzo": "VIA SCHIAVONETTI LUIGI 426", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20SCHIAVONETTI%20LUIGI%20426%2C%20Roma%2C%20Italia", "x": 696.0, "y": 395.9}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 9, "insegna": "IPERTRISCOUNT", "indirizzo": "VIA DELL'ARCO DI TRAVERTINO 88/94", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELL%27ARCO%20DI%20TRAVERTINO%2088/94%2C%20Roma%2C%20Italia", "x": 753.8, "y": 395.9}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 10, "insegna": "DEM", "indirizzo": "VIA ANTONIO ANGELONI 22/24", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ANTONIO%20ANGELONI%2022/24%2C%20Roma%2C%20Italia", "x": 811.5, "y": 395.9}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 11, "insegna": "DEM", "indirizzo": "VIA DELLE CAVE 99 A", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELLE%20CAVE%2099%20A%2C%20Roma%2C%20Italia", "x": 574.5, "y": 430.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 12, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA RINALDO D'AMI 2/4", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20RINALDO%20D%27AMI%202/4%2C%20Roma%2C%20Italia", "x": 632.2, "y": 430.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 13, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA APPIA NUOVA 889", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20APPIA%20NUOVA%20889%2C%20Roma%2C%20Italia", "x": 690.0, "y": 430.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 14, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA TITO 13/15", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TITO%2013/15%2C%20Roma%2C%20Italia", "x": 747.8, "y": 430.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 15, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA GELA 57", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20GELA%2057%2C%20Roma%2C%20Italia", "x": 805.5, "y": 430.0}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 16, "insegna": "CONAD", "indirizzo": "VIA BUONORI 52", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20BUONORI%2052%2C%20Roma%2C%20Italia", "x": 580.5, "y": 464.1}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 17, "insegna": "TOP SUPERMERCATI", "indirizzo": "VIA DELL'OSPEDALETTO 20", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELL%27OSPEDALETTO%2020%2C%20Roma%2C%20Italia", "x": 638.2, "y": 464.1}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 18, "insegna": "SUPERMERCATI SACOPH", "indirizzo": "VIA TUSCOLANA 585/B", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TUSCOLANA%20585/B%2C%20Roma%2C%20Italia", "x": 696.0, "y": 464.1}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 19, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA ACERENZA 4/D", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ACERENZA%204/D%2C%20Roma%2C%20Italia", "x": 753.8, "y": 464.1}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 20, "insegna": "CARREFOUR MARKET", "indirizzo": "VIA DI PASSOLOMBARDO 281", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20PASSOLOMBARDO%20281%2C%20Roma%2C%20Italia", "x": 811.5, "y": 464.1}, {"zone": "Z5", "zoneName": "Sud-Est", "zoneSubtitle": "Tuscolana • Appia • Romanina • Ciampino", "seq": 21, "insegna": "CONAD", "indirizzo": "VIA TORRE DI MEZZAVIA 35", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20TORRE%20DI%20MEZZAVIA%2035%2C%20Roma%2C%20Italia", "x": 576.6, "y": 497.0}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 1, "insegna": "IPERTRISCOUNT", "indirizzo": "VIA DON MAZZOLARI PRIMO 169", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DON%20MAZZOLARI%20PRIMO%20169%2C%20Roma%2C%20Italia", "x": 346.9, "y": 396.3}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 2, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA DI SANTA PETRONILLA 10A - 18A", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20SANTA%20PETRONILLA%2010A%20-%2018A%2C%20Roma%2C%20Italia", "x": 397.5, "y": 395.2}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 3, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA DEL SERAFICO 220", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DEL%20SERAFICO%20220%2C%20Roma%2C%20Italia", "x": 450.0, "y": 395.2}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 4, "insegna": "IPERCOOP", "indirizzo": "VIA CRISTOFORO COLOMBO", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CRISTOFORO%20COLOMBO%2C%20Roma%2C%20Italia", "x": 502.5, "y": 395.2}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 5, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA DI GROTTA PERFETTA 360", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20GROTTA%20PERFETTA%20360%2C%20Roma%2C%20Italia", "x": 553.1, "y": 396.3}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 6, "insegna": "OASI", "indirizzo": "VIA CARMELO MAESTRINI", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20CARMELO%20MAESTRINI%2C%20Roma%2C%20Italia", "x": 351.0, "y": 455.0}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 7, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA SAN PAOLO DELLA CROCE 1/A", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20SAN%20PAOLO%20DELLA%20CROCE%201/A%2C%20Roma%2C%20Italia", "x": 403.5, "y": 455.0}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 8, "insegna": "PANORAMA", "indirizzo": "VIA MARIO RIGAMONTI 100", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20MARIO%20RIGAMONTI%20100%2C%20Roma%2C%20Italia", "x": 456.0, "y": 455.0}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 9, "insegna": "CARREFOUR MARKET", "indirizzo": "LARGO BRONZINO 13", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=LARGO%20BRONZINO%2013%2C%20Roma%2C%20Italia", "x": 508.5, "y": 455.0}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 10, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA DELLA CECCHIGNOLA", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELLA%20CECCHIGNOLA%2C%20Roma%2C%20Italia", "x": 561.0, "y": 455.0}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 11, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA DEL FOSSO TORRINO 4/10", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DEL%20FOSSO%20TORRINO%204/10%2C%20Roma%2C%20Italia", "x": 346.9, "y": 513.7}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 12, "insegna": "CARREFOUR MARKET", "indirizzo": "VIA LAURENTINA 82/84", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20LAURENTINA%2082/84%2C%20Roma%2C%20Italia", "x": 397.5, "y": 514.8}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 13, "insegna": "PAM SUPERSTORE", "indirizzo": "VIA LAURENTINA 865", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20LAURENTINA%20865%2C%20Roma%2C%20Italia", "x": 450.0, "y": 514.8}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 14, "insegna": "CTS SUPERMERCATI", "indirizzo": "VIA DELL'OCEANO ATLANTICO 271", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELL%27OCEANO%20ATLANTICO%20271%2C%20Roma%2C%20Italia", "x": 502.5, "y": 514.8}, {"zone": "Z6", "zoneName": "Sud", "zoneSubtitle": "EUR • Laurentina • Ardeatina • Cecchignola", "seq": 15, "insegna": "CTS SUPERMERCATI", "indirizzo": "VIA ANDREA MILLEVOI 57", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ANDREA%20MILLEVOI%2057%2C%20Roma%2C%20Italia", "x": 553.1, "y": 513.7}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 1, "insegna": "IPER PEWEX", "indirizzo": "VIA PIAN DUE TORRI 83", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20PIAN%20DUE%20TORRI%2083%2C%20Roma%2C%20Italia", "x": 140.3, "y": 372.6}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 2, "insegna": "IPER PEWEX", "indirizzo": "VIA ANTONIO PACINOTTI 10", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ANTONIO%20PACINOTTI%2010%2C%20Roma%2C%20Italia", "x": 206.2, "y": 371.5}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 3, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA DEL TRULLO 100", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DEL%20TRULLO%20100%2C%20Roma%2C%20Italia", "x": 273.8, "y": 371.5}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 4, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIA FILIPPO SERAFINI 73", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20FILIPPO%20SERAFINI%2073%2C%20Roma%2C%20Italia", "x": 339.7, "y": 372.6}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 5, "insegna": "CONAD SUPERSTORE", "indirizzo": "VIA DELLA MAGLIANA 224", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELLA%20MAGLIANA%20224%2C%20Roma%2C%20Italia", "x": 144.5, "y": 430.0}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 6, "insegna": "SUPERMERCATI PIM", "indirizzo": "VIA ODERISI DA GUBBIO 133/183", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ODERISI%20DA%20GUBBIO%20133/183%2C%20Roma%2C%20Italia", "x": 212.2, "y": 430.0}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 7, "insegna": "CONAD", "indirizzo": "LARGO LIDO DURANTI 5", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=LARGO%20LIDO%20DURANTI%205%2C%20Roma%2C%20Italia", "x": 279.8, "y": 430.0}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 8, "insegna": "MA SUPERMERCATI", "indirizzo": "LARGO EMANUELE RUSPOLI 24", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=LARGO%20EMANUELE%20RUSPOLI%2024%2C%20Roma%2C%20Italia", "x": 347.5, "y": 430.0}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 9, "insegna": "CONAD", "indirizzo": "VIA PIETRO FRATTINI 158", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20PIETRO%20FRATTINI%20158%2C%20Roma%2C%20Italia", "x": 140.3, "y": 487.4}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 10, "insegna": "SUPERMERCATI PEWEX", "indirizzo": "VIALE PAOLO FERDINANDO QUAGLIA 120", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIALE%20PAOLO%20FERDINANDO%20QUAGLIA%20120%2C%20Roma%2C%20Italia", "x": 206.2, "y": 488.5}, {"zone": "Z7", "zoneName": "Sud-Ovest", "zoneSubtitle": "Trastevere • Portuense • Magliana", "seq": 11, "insegna": "CONAD", "indirizzo": "VIALE DI TRASTEVERE 62", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIALE%20DI%20TRASTEVERE%2062%2C%20Roma%2C%20Italia", "x": 273.8, "y": 488.5}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 1, "insegna": "SUPERMERCATI PIM", "indirizzo": "VIA DI MACCHIA SAPONARA 251", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20MACCHIA%20SAPONARA%20251%2C%20Roma%2C%20Italia", "x": -23.1, "y": 525.7}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 2, "insegna": "SUPERMERCATI PIM", "indirizzo": "VIA MASSIMO TROISI 15", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20MASSIMO%20TROISI%2015%2C%20Roma%2C%20Italia", "x": 45.0, "y": 524.8}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 3, "insegna": "IPERTRISCOUNT", "indirizzo": "VIA OSTIENSE 2193", "group": "1", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20OSTIENSE%202193%2C%20Roma%2C%20Italia", "x": 115.0, "y": 524.8}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 4, "insegna": "SUPERMERCATI EFFEPIU'", "indirizzo": "VIA DELLE EBRIDI 4", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELLE%20EBRIDI%204%2C%20Roma%2C%20Italia", "x": 183.1, "y": 525.7}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 5, "insegna": "CONAD", "indirizzo": "VIA DI MACCHIA SAPONARA 35", "group": "2", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DI%20MACCHIA%20SAPONARA%2035%2C%20Roma%2C%20Italia", "x": -19.0, "y": 580.0}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 6, "insegna": "CARREFOUR MARKET", "indirizzo": "VIA ERNESTO BOEZI 132", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20ERNESTO%20BOEZI%20132%2C%20Roma%2C%20Italia", "x": 51.0, "y": 580.0}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 7, "insegna": "CONAD", "indirizzo": "VIA COSTANZO CASANA 200", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20COSTANZO%20CASANA%20200%2C%20Roma%2C%20Italia", "x": 121.0, "y": 580.0}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 8, "insegna": "CONAD", "indirizzo": "VIA PIETRO CASTRUCCI 83", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20PIETRO%20CASTRUCCI%2083%2C%20Roma%2C%20Italia", "x": 191.0, "y": 580.0}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 9, "insegna": "PAM SUPERSTORE", "indirizzo": "VIA GIANFILIPPO USELLINI 287", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20GIANFILIPPO%20USELLINI%20287%2C%20Roma%2C%20Italia", "x": -23.1, "y": 634.3}, {"zone": "Z8", "zoneName": "Litorale", "zoneSubtitle": "Ostiense • Acilia • Infernetto • Ostia", "seq": 10, "insegna": "PANORAMA", "indirizzo": "VIA DELLE AZZORRE 440", "group": "3", "mapsUrl": "https://www.google.com/maps/search/?api=1&query=VIA%20DELLE%20AZZORRE%20440%2C%20Roma%2C%20Italia", "x": 45.0, "y": 635.2}];
+
+const state = {
+  search: "",
+  groups: [],
+  zones: [],
+  excluded: [],
+  extras: [],
+  manualOrder: [],
+  routeDirty: false,
+  lastDirtyReason: ""
+};
+const DEFAULT_ROUTE_MODE = "auto";
+
+const zonesLayer = document.getElementById("zonesLayer");
+const markersLayer = document.getElementById("markersLayer");
+const panelBody = document.getElementById("panelBody");
+const panelTitle = document.getElementById("panelTitle");
+const panelSubtitle = document.getElementById("panelSubtitle");
+const legend = document.getElementById("legend");
+const zoneChips = document.getElementById("zoneChips");
+const searchInput = document.getElementById("search");
+const groupFilter = document.getElementById("groupFilter");
+const groupFilterMeta = document.getElementById("groupFilterMeta");
+const zoneFilter = document.getElementById("zoneFilter");
+const zoneFilterMeta = document.getElementById("zoneFilterMeta");
+const forceCacheBtn = document.getElementById("forceCacheBtn");
+const routeSummary = document.getElementById("routeSummary");
+const routeContext = document.getElementById("routeContext");
+const routeOrder = document.getElementById("routeOrder");
+const routeBody = document.getElementById("routeBody");
+const routeRealMapEl = document.getElementById("routeRealMap");
+const routeRealStatus = document.getElementById("routeRealStatus");
+const routeRealCaption = document.getElementById("routeRealCaption");
+const geoCacheStatus = document.getElementById("geoCacheStatus");
+const activeRouteList = document.getElementById("activeRouteList");
+const activeRouteStatus = document.getElementById("activeRouteStatus");
+const generateAutoRouteBtn = document.getElementById("generateAutoRouteBtn");
+const restoreVisibleBtnTop = document.getElementById("restoreVisibleBtnTop");
+const generateRouteBtn = document.getElementById("generateRouteBtn");
+const openDirectionsBtn = document.getElementById("openDirectionsBtn");
+const activeRouteCardEl = document.querySelector('.route-stage .active-route-card');
+const realMapCardEl = document.querySelector('.route-stage .real-map-card');
+const routeDirtyState = document.getElementById("routeDirtyState");
+const routeMapOverlay = document.getElementById("routeMapOverlay");
+
+const GEO_CACHE_KEY = "roma_supermercati_geo_cache_v3";
+const SELECTION_CACHE_KEY = "roma_supermercati_route_selection_v1";
+const ROUTE_ORDER_CACHE_KEY = "roma_supermercati_route_manual_order_v1";
+const EXTRA_SELECTION_CACHE_KEY = "roma_supermercati_route_extra_selection_v1";
+let geoCache = (() => {
+  try {
+    return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || "{}");
+  } catch (e) {
+    return {};
+  }
+})();
+let realMap = null;
+let realMapLayer = null;
+let realMapRenderToken = 0;
+let geoPreloadRunning = false;
+let geoRefreshTimer = null;
+const GEO_RERENDER_BATCH = 5;
+
+function saveGeoCache() {
+  try {
+    localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(geoCache));
+  } catch (e) {}
+}
+
+function loadSelectionState() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SELECTION_CACHE_KEY) || "[]");
+    return Array.isArray(raw) ? raw.filter(value => typeof value === "string") : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function loadManualOrderState() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(ROUTE_ORDER_CACHE_KEY) || "[]");
+    return Array.isArray(raw) ? raw.filter(value => typeof value === "string") : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function loadExtraSelectionState() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(EXTRA_SELECTION_CACHE_KEY) || "[]");
+    return Array.isArray(raw) ? raw.filter(value => typeof value === "string") : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveSelectionState() {
+  try {
+    localStorage.setItem(SELECTION_CACHE_KEY, JSON.stringify(state.excluded));
+  } catch (e) {}
+}
+
+function saveManualOrderState() {
+  try {
+    localStorage.setItem(ROUTE_ORDER_CACHE_KEY, JSON.stringify(state.manualOrder));
+  } catch (e) {}
+}
+
+function syncActiveRouteCardHeight() {
+  if (!activeRouteCardEl || !realMapCardEl) return;
+  if (window.innerWidth <= 1120) {
+    activeRouteCardEl.style.height = 'auto';
+    activeRouteCardEl.classList.remove('synced-height');
+    return;
+  }
+  const h = realMapCardEl.offsetHeight;
+  if (h > 0) {
+    activeRouteCardEl.style.height = `${h}px`;
+    activeRouteCardEl.classList.add('synced-height');
+  }
+}
+
+window.addEventListener('resize', () => requestAnimationFrame(syncActiveRouteCardHeight));
+if (typeof ResizeObserver !== 'undefined' && realMapCardEl) {
+  new ResizeObserver(() => requestAnimationFrame(syncActiveRouteCardHeight)).observe(realMapCardEl);
+}
+
+function saveExtraSelectionState() {
+  try {
+    localStorage.setItem(EXTRA_SELECTION_CACHE_KEY, JSON.stringify(state.extras));
+  } catch (e) {}
+}
+
+async function forceGeoCacheRebuild() {
+  if (geoPreloadRunning) {
+    updateGeoCacheStatus('sincronizzazione');
+    return;
+  }
+  const stats = getGeoCacheStats();
+  const rebuild = stats.cached === stats.total && stats.total > 0;
+  if (rebuild) {
+    geoCache = {};
+    saveGeoCache();
+    updateGeoCacheStatus('rigenerazione');
+    scheduleRouteRefresh();
+  } else {
+    updateGeoCacheStatus('forzata');
+  }
+  await warmGeoCache(stores);
+}
+
+function getGeoCacheStats() {
+  const total = stores.length;
+  let cached = 0;
+  stores.forEach(store => {
+    if (geoCache[storeCacheKey(store)]) cached += 1;
+  });
+  return {cached, total};
+}
+
+function syncForceCacheButton() {
+  if (!forceCacheBtn) return;
+  const stats = getGeoCacheStats();
+  if (geoPreloadRunning) {
+    forceCacheBtn.disabled = true;
+    forceCacheBtn.textContent = "Sincronizzazione in corso…";
+    forceCacheBtn.title = "La cache locale sta già caricando i centri mancanti.";
+    return;
+  }
+  forceCacheBtn.disabled = false;
+  if (stats.cached === stats.total && stats.total > 0) {
+    forceCacheBtn.textContent = "Rigenera cache locale";
+    forceCacheBtn.title = "Svuota e ricostruisce tutta la cache locale degli indirizzi.";
+  } else {
+    forceCacheBtn.textContent = "Completa cache locale";
+    forceCacheBtn.title = "Forza il caricamento di tutti i centri mancanti nella cache locale.";
+  }
+}
+
+function updateGeoCacheStatus(message = "") {
+  if (!geoCacheStatus) return;
+  const stats = getGeoCacheStats();
+  const suffix = message ? ` · ${message}` : "";
+  geoCacheStatus.textContent = `Cache locale ${stats.cached}/${stats.total}${suffix}`;
+  geoCacheStatus.classList.toggle('ready', stats.cached === stats.total && stats.total > 0);
+  geoCacheStatus.classList.toggle('warming', stats.cached > 0 && stats.cached < stats.total);
+  syncForceCacheButton();
+}
+
+function markRouteDirty(reason = "") {
+  state.routeDirty = true;
+  state.lastDirtyReason = reason || state.lastDirtyReason || "modifiche in sospeso";
+}
+
+function clearRouteDirty() {
+  state.routeDirty = false;
+  state.lastDirtyReason = "";
+}
+
+function syncRouteGenerationUI() {
+  const hasVisible = getVisibleStores().length > 0;
+  const dirty = !!state.routeDirty;
+  const reason = state.lastDirtyReason || 'modifiche in sospeso';
+  if (routeDirtyState) {
+    routeDirtyState.className = `routegen-state${dirty ? ' pending' : ''}`;
+    routeDirtyState.textContent = dirty ? `Modifiche in sospeso · ${reason}` : 'Percorso allineato';
+  }
+  [generateRouteBtn].forEach(btn => {
+    if (!btn) return;
+    btn.disabled = !(dirty && hasVisible);
+    btn.textContent = dirty ? 'Genera percorso' : 'Percorso aggiornato';
+    btn.title = dirty ? 'Rigenera numeri, tracciato e anteprima reale con le modifiche correnti.' : 'Nessuna modifica pendente.';
+  });
+  if (routeMapOverlay) routeMapOverlay.classList.toggle('visible', dirty && hasVisible);
+}
+
+function generateRouteNow() {
+  if (!getVisibleStores().length) return;
+  clearRouteDirty();
+  render({forceRouteMap: true});
+}
+
+function setPendingRealMapState(plan, visibleStores) {
+  const includedCount = plan && Array.isArray(plan.orderedStores) ? plan.orderedStores.length : 0;
+  routeRealStatus.innerHTML = `<span class="route-live-note"><span class="route-live-dot" style="background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.16)"></span>Anteprima in attesa · ${includedCount} inclusi · ${visibleStores.length - includedCount} esclusi o fuori giro</span>`;
+  routeRealCaption.textContent = `Hai modifiche pendenti su perimetro, inclusioni o ordine manuale. L’elenco laterale è già aggiornato; premi “Genera percorso” quando vuoi riallineare tracciato, numeri e link rapidi sulla mappa reale.`;
+  syncDirectionsButton([]);
+}
+
+function scheduleRouteRefresh() {
+  clearTimeout(geoRefreshTimer);
+  if (state.routeDirty) {
+    syncRouteGenerationUI();
+    return;
+  }
+  geoRefreshTimer = setTimeout(() => render({forceRouteMap: true}), 140);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getCachedCoords(storeList) {
+  return storeList.map(store => {
+    const hit = geoCache[storeCacheKey(store)];
+    return hit ? {store, lat: hit.lat, lng: hit.lng} : null;
+  }).filter(Boolean);
+}
+
+async function warmGeoCache(priorityStores = []) {
+  if (geoPreloadRunning) return;
+  const seen = new Set();
+  const queue = [...priorityStores, ...stores].filter(store => {
+    const key = storeCacheKey(store);
+    if (seen.has(key) || geoCache[key]) return false;
+    seen.add(key);
+    return true;
+  });
+  if (!queue.length) {
+    updateGeoCacheStatus('pronta');
+    return;
+  }
+
+  geoPreloadRunning = true;
+  updateGeoCacheStatus('sincronizzazione');
+  let touched = 0;
+
+  for (const store of queue) {
+    await geocodeStore(store);
+    touched += 1;
+    updateGeoCacheStatus('sincronizzazione');
+    if (touched % GEO_RERENDER_BATCH === 0) {
+      scheduleRouteRefresh();
+    }
+    await sleep(720);
+  }
+
+  geoPreloadRunning = false;
+  updateGeoCacheStatus('pronta');
+  scheduleRouteRefresh();
+}
+
+function storeCacheKey(store) {
+  return `${store.insegna}__${store.indirizzo}`;
+}
+
+const storeIndex = new Map(stores.map(store => [storeCacheKey(store), store]));
+try {
+  localStorage.removeItem(SELECTION_CACHE_KEY);
+  localStorage.removeItem(ROUTE_ORDER_CACHE_KEY);
+  localStorage.removeItem(EXTRA_SELECTION_CACHE_KEY);
+} catch (e) {}
+state.excluded = [];
+state.extras = [];
+state.manualOrder = [];
+state.routeDirty = true;
+state.lastDirtyReason = 'anteprima iniziale non ancora generata';
+
+function isExtraSelected(store) {
+  return state.extras.includes(storeCacheKey(store));
+}
+
+function toggleExtraSelectionByKey(key) {
+  if (!storeIndex.has(key)) return;
+  if (state.extras.includes(key)) {
+    state.extras = state.extras.filter(value => value !== key);
+    state.excluded = state.excluded.filter(value => value !== key);
+    state.manualOrder = state.manualOrder.filter(value => value !== key);
+    saveSelectionState();
+    saveManualOrderState();
+    markRouteDirty('tappa extra rimossa');
+  } else {
+    state.extras = [...state.extras, key];
+    appendManualOrderKeyToEnd(key);
+    markRouteDirty('tappa extra aggiunta dalla vista territoriale');
+  }
+  saveExtraSelectionState();
+  render();
+}
+
+function toggleExtraSelection(store) {
+  toggleExtraSelectionByKey(storeCacheKey(store));
+}
+
+function getPerimeterStores() {
+  const map = new Map();
+  getVisibleStores().forEach(store => map.set(storeCacheKey(store), store));
+  state.extras.forEach(key => {
+    const store = storeIndex.get(key);
+    if (store) map.set(key, store);
+  });
+  return Array.from(map.values());
+}
+
+function getPerimeterZones() {
+  const scoped = getPerimeterStores();
+  return zoneOrder.filter(z => scoped.some(store => store.zone === z));
+}
+
+function isStoreIncluded(store) {
+  return !state.excluded.includes(storeCacheKey(store));
+}
+
+function appendManualOrderKeyToEnd(key) {
+  state.manualOrder = state.manualOrder.filter(value => value !== key);
+  state.manualOrder.push(key);
+  saveManualOrderState();
+}
+
+function buildDirectionsUrlForStores(storeList) {
+  if (!Array.isArray(storeList) || storeList.length < 2) return null;
+  const nodes = storeList.map(store => {
+    const geo = getStoreGeo(store, true);
+    if (!geo) return null;
+    return {lat: geo.lat, lng: geo.lng};
+  }).filter(Boolean);
+  return buildDirectionsUrl(nodes);
+}
+
+function syncDirectionsButton(storeList = []) {
+  if (!openDirectionsBtn) return;
+  const url = buildDirectionsUrlForStores(storeList);
+  openDirectionsBtn.style.display = '';
+  if (url) {
+    openDirectionsBtn.href = url;
+    openDirectionsBtn.setAttribute('aria-disabled', 'false');
+    openDirectionsBtn.classList.remove('is-disabled');
+  } else {
+    openDirectionsBtn.href = '#';
+    openDirectionsBtn.setAttribute('aria-disabled', 'true');
+    openDirectionsBtn.classList.add('is-disabled');
+  }
+}
+
+function setStoreIncludedByKey(key, included) {
+  const hasKey = state.excluded.includes(key);
+  if (included && hasKey) {
+    state.excluded = state.excluded.filter(value => value !== key);
+    appendManualOrderKeyToEnd(key);
+  }
+  if (!included && !hasKey) {
+    state.excluded = [...state.excluded, key];
+    state.manualOrder = state.manualOrder.filter(value => value !== key);
+    saveManualOrderState();
+  }
+  markRouteDirty(included ? 'centro reincluso in fondo al giro' : 'centro escluso');
+  saveSelectionState();
+  render();
+}
+
+function toggleStoreInclusion(store) {
+  const key = storeCacheKey(store);
+  setStoreIncludedByKey(key, !isStoreIncluded(store));
+}
+
+function clearExcludedForVisibleStores() {
+  const visibleKeys = new Set(getPerimeterStores().map(store => storeCacheKey(store)));
+  if (!visibleKeys.size) return;
+  state.excluded = state.excluded.filter(key => !visibleKeys.has(key));
+  markRouteDirty('centri reinclusi');
+  saveSelectionState();
+  render();
+}
+
+function getVisibleIncludedStores() {
+  return getPerimeterStores().filter(store => isStoreIncluded(store));
+}
+
+function setManualOrderForScope(keysInOrder) {
+  const scopeSet = new Set(keysInOrder);
+  const outside = state.manualOrder.filter(key => !scopeSet.has(key) && storeIndex.has(key));
+  state.manualOrder = [...keysInOrder, ...outside];
+  saveManualOrderState();
+}
+
+function clearManualOrderForVisible() {
+  const visibleIncludedKeys = new Set(getVisibleIncludedStores().map(store => storeCacheKey(store)));
+  if (!visibleIncludedKeys.size) return;
+  state.manualOrder = state.manualOrder.filter(key => !visibleIncludedKeys.has(key));
+  markRouteDirty('ordine automatico pronto');
+  saveManualOrderState();
+  render();
+}
+
+function generateAutomaticRoute() {
+  const visibleIncludedKeys = new Set(getVisibleIncludedStores().map(store => storeCacheKey(store)));
+  if (visibleIncludedKeys.size) {
+    state.manualOrder = state.manualOrder.filter(key => !visibleIncludedKeys.has(key));
+    saveManualOrderState();
+  }
+  clearRouteDirty();
+  render({forceRouteMap: true});
+}
+
+function applyManualOrder(autoOrderedStores) {
+  const autoKeys = autoOrderedStores.map(store => storeCacheKey(store));
+  const scopedSet = new Set(autoKeys);
+  const manualKeys = state.manualOrder.filter(key => scopedSet.has(key));
+  if (manualKeys.length < 2) return [...autoOrderedStores];
+  const manualSet = new Set(manualKeys);
+  const finalKeys = [...manualKeys, ...autoKeys.filter(key => !manualSet.has(key))];
+  return finalKeys.map(key => storeIndex.get(key)).filter(Boolean);
+}
+
+function moveStoreWithinVisible(key, direction) {
+  const visibleIncluded = getVisibleIncludedStores();
+  const currentPlan = buildRoutePlan(visibleIncluded);
+  const currentKeys = currentPlan.orderedStores.map(store => storeCacheKey(store));
+  const idx = currentKeys.indexOf(key);
+  if (idx === -1) return;
+  const newIndex = idx + direction;
+  if (newIndex < 0 || newIndex >= currentKeys.length) return;
+  const nextKeys = [...currentKeys];
+  const [moved] = nextKeys.splice(idx, 1);
+  nextKeys.splice(newIndex, 0, moved);
+  setManualOrderForScope(nextKeys);
+  markRouteDirty('ordine manuale aggiornato');
+  render();
+}
+
+function reorderStoreWithinVisible(sourceKey, targetKey, position = 'before') {
+  if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+  const visibleIncluded = getVisibleIncludedStores();
+  const currentPlan = buildRoutePlan(visibleIncluded);
+  const currentKeys = currentPlan.orderedStores.map(store => storeCacheKey(store));
+  const sourceIndex = currentKeys.indexOf(sourceKey);
+  const targetIndex = currentKeys.indexOf(targetKey);
+  if (sourceIndex === -1 || targetIndex === -1) return;
+  const nextKeys = [...currentKeys];
+  const [moved] = nextKeys.splice(sourceIndex, 1);
+  const targetIndexAfterRemoval = nextKeys.indexOf(targetKey);
+  const insertIndex = position === 'after' ? targetIndexAfterRemoval + 1 : targetIndexAfterRemoval;
+  nextKeys.splice(insertIndex, 0, moved);
+  setManualOrderForScope(nextKeys);
+  markRouteDirty('ordine manuale aggiornato');
+  render();
+}
+
+function normalizeAddress(raw) {
+  return String(raw || "")
+    .replace(/\s+-\s+/g, ', ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function getAddressQueries(store) {
+  const clean = normalizeAddress(store.indirizzo);
+  const variants = [
+    `${clean}, Roma, Italia`,
+    `${clean}, Roma`,
+    `${store.insegna} ${clean}, Roma`
+  ];
+  return [...new Set(variants)];
+}
+
+function avgLatLng(nodes) {
+  if (!nodes.length) return null;
+  const sum = nodes.reduce((acc, node) => {
+    acc.lat += node.lat;
+    acc.lng += node.lng;
+    return acc;
+  }, {lat: 0, lng: 0});
+  return {lat: sum.lat / nodes.length, lng: sum.lng / nodes.length};
+}
+
+function ensureRealMap() {
+  if (!window.L) return false;
+  if (realMap) return true;
+  routeRealMapEl.innerHTML = "";
+  realMap = L.map(routeRealMapEl, {zoomControl: true, scrollWheelZoom: true, preferCanvas: true});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 20,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(realMap);
+  realMapLayer = L.layerGroup().addTo(realMap);
+  return true;
+}
+
+function clearRealMap(message, caption = "") {
+  routeRealStatus.innerHTML = message || '<span class="route-live-note"><span class="route-live-dot"></span>Vista cartografica grande, centrata sul perimetro attivo</span>';
+  routeRealCaption.textContent = caption;
+  syncDirectionsButton([]);
+  if (realMapLayer) realMapLayer.clearLayers();
+  if (!window.L) {
+    routeRealMapEl.innerHTML = '<div class="route-real-fallback">Anteprima reale non disponibile in questo browser o senza connessione. Puoi comunque usare il pannello percorso e i link rapidi fino a quando la cartografia reale non torna disponibile.</div>';
+  }
+}
+
+async function geocodeStore(store) {
+  const key = storeCacheKey(store);
+  if (geoCache[key]) return geoCache[key];
+
+  for (const query of getAddressQueries(store)) {
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&countrycodes=it&bounded=1&viewbox=12.18,42.08,12.86,41.62&q=${encodeURIComponent(query)}`;
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Language': 'it'
+        }
+      });
+      clearTimeout(t);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (Array.isArray(data) && data[0]) {
+        const hit = {
+          lat: Number(data[0].lat),
+          lng: Number(data[0].lon)
+        };
+        if (Number.isFinite(hit.lat) && Number.isFinite(hit.lng)) {
+          geoCache[key] = hit;
+          saveGeoCache();
+          return hit;
+        }
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+async function geocodeStoresLimited(storesToResolve, concurrency = 3) {
+  const results = new Array(storesToResolve.length).fill(null);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < storesToResolve.length) {
+      const idx = cursor++;
+      results[idx] = await geocodeStore(storesToResolve[idx]);
+    }
+  }
+  await Promise.all(Array.from({length: Math.min(concurrency, storesToResolve.length)}, worker));
+  return results;
+}
+
+function buildDirectionsUrl(nodes) {
+  if (!nodes || nodes.length < 2) return null;
+  const trimmed = nodes.slice(0, 10);
+  const origin = `${trimmed[0].lat},${trimmed[0].lng}`;
+  const destination = `${trimmed[trimmed.length - 1].lat},${trimmed[trimmed.length - 1].lng}`;
+  const middle = trimmed.slice(1, -1).map(node => `${node.lat},${node.lng}`).join('|');
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+  if (middle) url += `&waypoints=${encodeURIComponent(middle)}`;
+  return url;
+}
+
+function makeMapLabel(text) {
+  return L.divIcon({
+    className: 'real-route-label',
+    html: esc(text),
+    iconSize: null
+  });
+}
+
+function chooseRealMapStrategy(plan, effectiveMode) {
+  const scopedZones = getScopedZones(plan.orderedStores);
+  const singleZone = scopedZones.length === 1;
+  const cached = getCachedCoords(plan.orderedStores).length;
+  const coverage = plan.orderedStores.length ? cached / plan.orderedStores.length : 0;
+  const mustShowPoints = effectiveMode === 'points';
+  const canShowPoints = plan.orderedStores.length <= 26 || coverage >= 0.72 || (singleZone && coverage >= 0.48);
+  if (mustShowPoints || canShowPoints) {
+    return {kind: 'stores', limit: plan.orderedStores.length, coverage};
+  }
+  return {kind: 'zones', coverage};
+}
+
+async function renderRealRoutePreview(plan, effectiveMode, visibleStores = getVisibleStores()) {
+  const token = ++realMapRenderToken;
+  syncDirectionsButton([]);
+  updateGeoCacheStatus();
+
+  if (!visibleStores.length) {
+    clearRealMap('Nessuna anteprima reale disponibile', 'Il pannello si attiva appena il perimetro filtrato contiene almeno una tappa.');
+    return;
+  }
+
+  if (!ensureRealMap()) {
+    clearRealMap('Anteprima reale non disponibile', 'Il browser non ha caricato i componenti cartografici esterni.');
+    return;
+  }
+
+  realMapLayer.clearLayers();
+  warmGeoCache(visibleStores);
+
+  let cachedHits = getCachedCoords(visibleStores);
+  const missingUrgent = visibleStores.filter(store => !geoCache[storeCacheKey(store)]).slice(0, 12);
+  if (cachedHits.length < Math.min(12, visibleStores.length) && missingUrgent.length) {
+    routeRealStatus.innerHTML = '<span class="route-live-note"><span class="route-live-dot"></span>Sto completando la cache locale dei centri visibili…</span>';
+    await geocodeStoresLimited(missingUrgent, 2);
+    updateGeoCacheStatus('sincronizzazione');
+    if (token !== realMapRenderToken) return;
+    cachedHits = getCachedCoords(visibleStores);
+  }
+
+  const nodes = visibleStores.map(store => {
+    const geo = getStoreGeo(store, true);
+    if (!geo) return null;
+    return {
+      ...store,
+      store,
+      lat: geo.lat,
+      lng: geo.lng,
+      cached: !!geo.cached,
+      included: isStoreIncluded(store),
+      title: `${store.insegna} — ${store.indirizzo}`,
+      color: zoneDefs[store.zone].color,
+      nodeType: 'store'
+    };
+  }).filter(Boolean);
+
+  const nodeMap = new Map(nodes.map(node => [storeCacheKey(node.store), node]));
+  const activeNodes = plan && plan.orderedStores.length
+    ? plan.orderedStores.map(store => nodeMap.get(storeCacheKey(store))).filter(Boolean)
+    : [];
+  const excludedNodes = nodes.filter(node => !node.included);
+  const centerBase = activeNodes.length ? activeNodes : nodes;
+  const center = avgLatLng(centerBase);
+  const cachedCount = nodes.filter(node => node.cached).length;
+  const coverage = nodes.length ? `${cachedCount}/${nodes.length}` : '0/0';
+
+  if (activeNodes.length > 1) {
+    const latlngs = activeNodes.map(node => [node.lat, node.lng]);
+    L.polyline(latlngs, {
+      color: '#2563eb',
+      weight: activeNodes.length > 30 ? 4 : 5,
+      opacity: 0.8,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(realMapLayer);
+  }
+
+  const activeIndexMap = new Map(activeNodes.map((node, idx) => [storeCacheKey(node.store), idx + 1]));
+
+  nodes.forEach((node) => {
+    const activeIndex = activeIndexMap.get(storeCacheKey(node.store));
+    const isStart = activeNodes.length && activeNodes[0] === node;
+    const isEnd = activeNodes.length > 1 && activeNodes[activeNodes.length - 1] === node;
+
+    if (node.included && (isStart || isEnd)) {
+      L.circleMarker([node.lat, node.lng], {
+        radius: isStart ? 13 : 12,
+        color: isStart ? '#36c36a' : '#f59e0b',
+        weight: 3,
+        fillOpacity: 0,
+        opacity: 0.95
+      }).addTo(realMapLayer);
+    }
+
+    const marker = L.circleMarker([node.lat, node.lng], {
+      radius: node.included ? (activeNodes.length > 35 ? 6 : 7.5) : 6.5,
+      color: node.included ? '#36c36a' : '#94a3b8',
+      weight: node.included ? 4 : 3.4,
+      fillColor: node.color,
+      fillOpacity: node.included ? 0.95 : 0.34,
+      opacity: 0.98
+    }).addTo(realMapLayer);
+
+    marker.on('click', () => toggleStoreInclusion(node.store));
+    const hoverLabel = `<div class="tipbox"><div class="tiptitle">${activeIndex ? `${activeIndex}. ` : ''}${esc(node.insegna)}</div><div class="tipaddr">${esc(node.indirizzo)}</div><div class="tipmeta">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'nel giro' : 'fuori giro'}</div><div class="tipaction">${node.included ? 'Clic per escludere dal giro' : 'Clic per reincludere nel giro'}</div></div>`;
+    marker.bindTooltip(hoverLabel, {sticky: true, direction: 'top', opacity: .98, className: 'real-point-tooltip'});
+    marker.bindPopup(`<strong>${esc(node.insegna)}</strong><br>${esc(node.indirizzo)}<br><span style="color:#64748b">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'incluso nel giro' : 'escluso dal giro'}</span><br><span style="color:#64748b">${node.cached ? 'Coordinate reali in cache locale' : 'Posizionamento provvisorio in attesa della cache reale'}</span><br><span style="color:#4f46e5">Clic diretto sul marker per cambiare stato.</span>`);
+
+    if (activeIndex) {
+      L.marker([node.lat, node.lng], {icon: makeMapLabel(String(activeIndex))}).addTo(realMapLayer);
+    } else if (excludedNodes.length <= 14) {
+      L.marker([node.lat, node.lng], {icon: L.divIcon({className: 'real-route-label excluded-label', html: '×', iconSize: null})}).addTo(realMapLayer);
+    }
+  });
+
+  if (center) {
+    L.marker([center.lat, center.lng], {
+      icon: L.divIcon({className: 'real-center-icon', html: '◆', iconSize: [22, 22], iconAnchor: [11, 11]})
+    }).addTo(realMapLayer).bindPopup('<strong>Centro operativo</strong><br>Centro geografico del perimetro attivo attualmente incluso nel giro.');
+  }
+
+  const bounds = L.latLngBounds(nodes.map(node => [node.lat, node.lng]));
+  if (center) bounds.extend([center.lat, center.lng]);
+  realMap.fitBounds(bounds.pad(0.18));
+  setTimeout(() => realMap.invalidateSize(), 0);
+
+  routeRealStatus.innerHTML = `<span class="route-live-note"><span class="route-live-dot"></span>${activeNodes.length} inclusi · ${excludedNodes.length} esclusi · cache reale ${coverage}</span>`;
+  routeRealCaption.textContent = `Anteprima reale completa del perimetro visibile: tutti i centri restano mostrati sulla cartografia, ma il tracciato blu usa solo quelli inclusi nel giro. Passando il mouse sopra ogni marker vedi subito il centro, poi puoi rifinire l’ordine nell’elenco laterale.`;
+  syncDirectionsButton(plan && plan.orderedStores ? plan.orderedStores : []);
+}
+
+function esc(s) {
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+function hasSelection(list, value) {
+  return list.includes(value);
+}
+
+function toggleSelection(list, value) {
+  return list.includes(value) ? list.filter(v => v !== value) : [...list, value];
+}
+
+function groupCount(group) {
+  return stores.filter(store => storeMatches(store, {ignoreGroups: true}) && store.group === group).length;
+}
+
+function zoneCountForFilter(zone) {
+  return stores.filter(store => storeMatches(store, {ignoreZones: true}) && store.zone === zone).length;
+}
+
+function storeMatches(store, {ignoreGroups = false, ignoreZones = false} = {}) {
+  const q = state.search.trim().toLowerCase();
+  const hay = `${store.insegna} ${store.indirizzo} ${store.zoneName} ${store.zoneSubtitle}`.toLowerCase();
+  const okSearch = !q || hay.includes(q);
+  const okGroup = ignoreGroups || !state.groups.length || state.groups.includes(store.group);
+  const okZone = ignoreZones || !state.zones.length || state.zones.includes(store.zone);
+  return okSearch && okGroup && okZone;
+}
+
+function getVisibleStores() {
+  return stores.filter(store => storeMatches(store));
+}
+
+function getVisibleZones() {
+  return zoneOrder.filter(z => getVisibleStores().some(s => s.zone === z));
+}
+
+function toggleGroup(group) {
+  state.groups = toggleSelection(state.groups, group).sort();
+  markRouteDirty('filtri aggiornati');
+  render();
+}
+
+function clearGroups() {
+  state.groups = [];
+  markRouteDirty('filtri aggiornati');
+  render();
+}
+
+function toggleZone(zone) {
+  state.zones = toggleSelection(state.zones, zone).sort((a, b) => zoneOrder.indexOf(a) - zoneOrder.indexOf(b));
+  markRouteDirty('zone aggiornate');
+  render();
+}
+
+function clearZones() {
+  state.zones = [];
+  markRouteDirty('zone aggiornate');
+  render();
+}
+
+function renderTopFilters() {
+  groupFilter.innerHTML = '';
+  [['all', 'Tutti'], ['1', 'Group 1'], ['2', 'Group 2'], ['3', 'Group 3']].forEach(([value, label]) => {
+    const btn = document.createElement('button');
+    const count = value === 'all' ? stores.filter(store => storeMatches(store, {ignoreGroups: true})).length : groupCount(value);
+    const isAll = value === 'all';
+    const active = isAll ? !state.groups.length : state.groups.includes(value);
+    btn.className = 'filter-chip' + (active ? ' active' : '') + (count === 0 && !active ? ' muted' : '');
+    btn.textContent = isAll ? `${label} (${count})` : `${label} · ${count}`;
+    btn.addEventListener('click', () => isAll ? clearGroups() : toggleGroup(value));
+    groupFilter.appendChild(btn);
+  });
+  groupFilterMeta.textContent = state.groups.length
+    ? `Selezionati ${state.groups.length} gruppi: ${state.groups.map(g => `Group ${g}`).join(', ')}.`
+    : 'Nessun gruppo bloccato: il perimetro include tutti i PdV Group compatibili con gli altri filtri.';
+
+  zoneFilter.innerHTML = '';
+  const allZoneBtn = document.createElement('button');
+  const allVisibleByOtherFilters = stores.filter(store => storeMatches(store, {ignoreZones: true})).length;
+  allZoneBtn.className = 'filter-chip' + (!state.zones.length ? ' active' : '');
+  allZoneBtn.textContent = `Tutte (${allVisibleByOtherFilters})`;
+  allZoneBtn.addEventListener('click', clearZones);
+  zoneFilter.appendChild(allZoneBtn);
+
+  zoneOrder.forEach(zone => {
+    const count = zoneCountForFilter(zone);
+    const btn = document.createElement('button');
+    btn.className = 'filter-chip' + (state.zones.includes(zone) ? ' active' : '') + (count === 0 && !state.zones.includes(zone) ? ' muted' : '');
+    btn.innerHTML = `<strong>${zone}</strong> · ${count}`;
+    btn.addEventListener('click', () => toggleZone(zone));
+    zoneFilter.appendChild(btn);
+  });
+
+  zoneFilterMeta.textContent = state.zones.length
+    ? `Selezionate ${state.zones.length} zone: ${state.zones.join(', ')}.`
+    : 'Nessuna zona bloccata: il pannello laterale sotto raggruppa automaticamente tutti i punti visibili per zona.';
+}
+
+function zoneStoreCount(zone) {
+  return getVisibleStores().filter(s => s.zone === zone).length;
+}
+
+function blobPath(cx, cy, rx, ry) {
+  // soft irregular blob
+  return `
+    M ${cx-rx*0.92} ${cy}
+    C ${cx-rx*0.95} ${cy-ry*0.55}, ${cx-rx*0.45} ${cy-ry*1.02}, ${cx} ${cy-ry*0.92}
+    C ${cx+rx*0.48} ${cy-ry*1.02}, ${cx+rx*0.98} ${cy-ry*0.38}, ${cx+rx*0.92} ${cy}
+    C ${cx+rx*0.95} ${cy+ry*0.5}, ${cx+rx*0.42} ${cy+ry*0.98}, ${cx} ${cy+ry*0.9}
+    C ${cx-rx*0.52} ${cy+ry*0.98}, ${cx-rx*0.98} ${cy+ry*0.32}, ${cx-rx*0.92} ${cy}
+    Z
+  `;
+}
+
+function renderZones() {
+  zonesLayer.innerHTML = "";
+  legend.innerHTML = "";
+
+  zoneOrder.forEach(z => {
+    const def = zoneDefs[z];
+    const visibleCount = zoneStoreCount(z);
+    const selected = state.zones.includes(z);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", blobPath(def.cx, def.cy, def.rx, def.ry));
+    path.setAttribute("fill", def.color);
+    path.setAttribute("class", "zoneblob" + (selected ? " active" : ""));
+    if (!visibleCount) path.style.opacity = state.zones.length ? ".06" : ".09";
+    path.addEventListener("click", () => toggleZone(z));
+    zonesLayer.appendChild(path);
+
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", def.cx);
+    label.setAttribute("y", def.cy - 4);
+    label.setAttribute("class", "zone-label");
+    label.textContent = `${z} · ${def.name}`;
+    if (!visibleCount) label.style.opacity = ".35";
+    zonesLayer.appendChild(label);
+
+    const sub = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    sub.setAttribute("x", def.cx);
+    sub.setAttribute("y", def.cy + 18);
+    sub.setAttribute("class", "zone-sub");
+    sub.textContent = `${visibleCount} punti`;
+    if (!visibleCount) sub.style.opacity = ".35";
+    zonesLayer.appendChild(sub);
+
+    const legendItem = document.createElement("button");
+    legendItem.className = "legend-item" + (selected ? " soft-active" : "");
+    legendItem.innerHTML = `<span class="swatch" style="background:${def.color}"></span><span>${z} · ${def.name} (${visibleCount})</span>`;
+    legendItem.onclick = () => toggleZone(z);
+    legend.appendChild(legendItem);
+  });
+}
+
+function renderMarkers() {
+  markersLayer.innerHTML = "";
+  const visibleStores = getVisibleStores();
+  const perimeterKeys = new Set(getPerimeterStores().map(store => storeCacheKey(store)));
+
+  stores.forEach(store => {
+    const def = zoneDefs[store.zone];
+    const key = storeCacheKey(store);
+    const visibleByFilters = visibleStores.includes(store);
+    const extraSelected = isExtraSelected(store) && !visibleByFilters;
+    const inPerimeter = perimeterKeys.has(key);
+    const selected = state.zones.includes(store.zone);
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const inclusionClass = visibleByFilters ? (isStoreIncluded(store) ? " included" : " excluded") : "";
+    g.setAttribute("class", "marker" + (selected ? " active" : "") + (visibleByFilters ? " in-perimeter" : "") + inclusionClass + (extraSelected ? " extra" : "") + (!inPerimeter ? " dimmed" : ""));
+    g.setAttribute("transform", `translate(${store.x},${store.y})`);
+    g.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (visibleByFilters) {
+        toggleStoreInclusion(store);
+      } else {
+        toggleExtraSelection(store);
+      }
+    });
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("r", 12);
+    circle.setAttribute("fill", def.color);
+    g.appendChild(circle);
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.textContent = store.seq;
+    text.setAttribute("y", 1);
+    g.appendChild(text);
+
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = `${store.insegna} — ${store.indirizzo}
+${visibleByFilters ? (isStoreIncluded(store) ? 'Clic: escludi dal percorso attivo' : 'Clic: reincludi nel percorso attivo') : (extraSelected ? 'Clic: rimuovi la tappa extra selezionata' : 'Clic: aggiungi come tappa extra al percorso')}`;
+    g.appendChild(title);
+
+    markersLayer.appendChild(g);
+  });
+}
+
+function renderPanel() {
+  const visible = getPerimeterStores();
+  const selectedZones = getPerimeterZones();
+
+  zoneChips.innerHTML = '';
+  const passiveBits = [];
+  passiveBits.push(state.zones.length ? `Zone: <strong>${state.zones.join(', ')}</strong>` : `Zone: <strong>tutte quelle visibili</strong>`);
+  passiveBits.push(state.groups.length ? `Gruppi: <strong>${state.groups.map(g => `Group ${g}`).join(', ')}</strong>` : `Gruppi: <strong>tutti</strong>`);
+  if (state.search.trim()) passiveBits.push(`Ricerca: <strong>${esc(state.search.trim())}</strong>`);
+  passiveBits.forEach(htmlBit => {
+    const el = document.createElement('div');
+    el.className = 'filter-pill-passive';
+    el.innerHTML = htmlBit;
+    zoneChips.appendChild(el);
+  });
+
+  panelTitle.textContent = 'Centri nel perimetro attivo';
+  const extraCount = state.extras.filter(key => { const store = storeIndex.get(key); return !!store && !storeMatches(store); }).length;
+  panelSubtitle.textContent = state.zones.length
+    ? `Elenco raggruppato per ${selectedZones.length} zone presenti nel perimetro attivo, incluse eventuali tappe extra aggiunte dalla mappa.`
+    : `Nessuna zona bloccata: i ${visible.length} centri nel perimetro sono raggruppati automaticamente per zona.${extraCount ? ` Extra da mappa attivi: ${extraCount}.` : ''}`;
+
+  if (!visible.length) {
+    panelBody.innerHTML = `<div class="empty">Nessun punto corrisponde ai filtri correnti. Riduci i vincoli sopra per ricostruire il perimetro.</div>`;
+    return;
+  }
+
+  panelBody.innerHTML = selectedZones.map(zone => {
+    const def = zoneDefs[zone];
+    const zoneStores = visible.filter(s => s.zone === zone);
+    if (!zoneStores.length) {
+      return `
+        <div class="zonecard">
+          <h2>${zone} · ${def.name}</h2>
+          <p>${def.subtitle}</p>
+          <div class="badges">
+            <span class="badge">0 punti visibili</span>
+          </div>
+          <div class="hint">Questa zona è selezionata sopra, ma al momento non contiene punti compatibili con gli altri filtri attivi.</div>
+        </div>
+      `;
+    }
+    return `
+      <div class="zonecard">
+        <h2>${zone} · ${def.name}</h2>
+        <p>${def.subtitle}</p>
+        <div class="badges">
+          <span class="badge">${zoneStores.length} centri nel perimetro</span>
+          <span class="badge">${zoneStores.filter(store => isExtraSelected(store) && !storeMatches(store)).length} extra da mappa</span>
+        </div>
+        <div class="list">
+          ${zoneStores.map(store => {
+            const key = storeCacheKey(store);
+            const included = isStoreIncluded(store);
+            const isExtra = isExtraSelected(store) && !storeMatches(store);
+            return `
+            <div class="item ${included ? 'included' : 'excluded'}">
+              <div class="itemnum" style="background:${def.color}">${store.seq}</div>
+              <div>
+                <h3>${esc(store.insegna)}</h3>
+                <div class="addr">${esc(store.indirizzo)}</div>
+                <div class="meta">
+                  <span class="tag">PdV Group ${store.group}</span>
+                  <span class="tag">${zone}</span>
+                  ${isExtra ? '<span class="tag">Extra da mappa</span>' : ''}
+                </div>
+              </div>
+              <div class="panel-item-actions">
+                <span class="route-state-pill ${included ? 'selection-tag-included' : 'selection-tag-excluded'}">${included ? 'Incluso' : 'Escluso'}</span>
+                <a class="mapbtn" href="${store.mapsUrl}" target="_blank" rel="noopener">Google Maps</a>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+
+function getScopedStores() {
+  return getVisibleStores().filter(store => isStoreIncluded(store));
+}
+
+function getScopedZones(scopedStores) {
+  return zoneOrder.filter(z => scopedStores.some(s => s.zone === z));
+}
+
+function dist(a, b) {
+  return Math.hypot((a.x || 0) - (b.x || 0), (a.y || 0) - (b.y || 0));
+}
+
+function avgPoint(list) {
+  if (!list.length) return {x: 500, y: 350};
+  return {
+    x: list.reduce((sum, item) => sum + item.x, 0) / list.length,
+    y: list.reduce((sum, item) => sum + item.y, 0) / list.length,
+  };
+}
+
+function getBounds(list) {
+  return {
+    minX: Math.min(...list.map(p => p.x)),
+    maxX: Math.max(...list.map(p => p.x)),
+    minY: Math.min(...list.map(p => p.y)),
+    maxY: Math.max(...list.map(p => p.y)),
+  };
+}
+
+function getAnchors(list) {
+  const centroid = avgPoint(list);
+  const bounds = getBounds(list);
+  const width = bounds.maxX - bounds.minX;
+  const height = bounds.maxY - bounds.minY;
+  const horizontal = width >= height;
+  return {
+    centroid,
+    bounds,
+    axis: horizontal ? "orizzontale" : "verticale",
+    start: horizontal
+      ? {x: bounds.minX - 55, y: centroid.y}
+      : {x: centroid.x, y: bounds.minY - 55},
+    end: horizontal
+      ? {x: bounds.maxX + 55, y: centroid.y}
+      : {x: centroid.x, y: bounds.maxY + 55},
+  };
+}
+
+function orderByNearest(items, {startHint = null, endHint = null} = {}) {
+  const remaining = [...items];
+  if (!remaining.length) return [];
+
+  let current;
+  if (startHint) {
+    let bestIndex = 0;
+    let bestScore = Infinity;
+    remaining.forEach((item, idx) => {
+      const score = dist(item, startHint);
+      if (score < bestScore) {
+        bestScore = score;
+        bestIndex = idx;
+      }
+    });
+    current = remaining.splice(bestIndex, 1)[0];
+  } else {
+    const bounds = getBounds(remaining);
+    let bestIndex = 0;
+    let bestScore = Infinity;
+    remaining.forEach((item, idx) => {
+      const score = (item.x - bounds.minX) + 0.82 * (item.y - bounds.minY);
+      if (score < bestScore) {
+        bestScore = score;
+        bestIndex = idx;
+      }
+    });
+    current = remaining.splice(bestIndex, 1)[0];
+  }
+
+  const ordered = [current];
+  while (remaining.length) {
+    let bestIndex = 0;
+    let bestScore = Infinity;
+    remaining.forEach((item, idx) => {
+      const score = dist(item, current) + (endHint ? dist(item, endHint) * 0.12 : 0);
+      if (score < bestScore) {
+        bestScore = score;
+        bestIndex = idx;
+      }
+    });
+    current = remaining.splice(bestIndex, 1)[0];
+    ordered.push(current);
+  }
+  return ordered;
+}
+
+function polyLength(points) {
+  let total = 0;
+  for (let i = 1; i < points.length; i++) total += dist(points[i-1], points[i]);
+  return Math.round(total);
+}
+
+function labelForFilters(scopedStores) {
+  const parts = [];
+  parts.push(state.zones.length ? `zone ${state.zones.join(', ')}` : 'tutte le zone attualmente visibili');
+  if (state.groups.length) parts.push(`PdV ${state.groups.map(g => `Group ${g}`).join(', ')}`);
+  if (state.search.trim()) parts.push(`ricerca “${state.search.trim()}”`);
+  const extraCount = state.extras.filter(key => { const store = storeIndex.get(key); return !!store && !storeMatches(store); }).length;
+  if (extraCount) parts.push(`${extraCount} extra da mappa`);
+  return parts.join(' • ');
+}
+
+function describeArea(point) {
+  const horiz = point.x < 335 ? "ovest" : point.x > 665 ? "est" : "centro";
+  const vert = point.y < 235 ? "nord" : point.y > 465 ? "sud" : "centro";
+  if (horiz === "centro" && vert === "centro") return "centro città";
+  if (vert === "centro") return `${horiz}`;
+  if (horiz === "centro") return `${vert}`;
+  return `${vert}-${horiz}`;
+}
+
+function buildAutomaticRoutePlan(scopedStores) {
+  const anchors = getAnchors(scopedStores);
+  const zoneBuckets = getScopedZones(scopedStores).map(zone => {
+    const zoneStores = scopedStores.filter(s => s.zone === zone);
+    const centroid = avgPoint(zoneStores);
+    return {
+      zone,
+      ...zoneDefs[zone],
+      x: centroid.x,
+      y: centroid.y,
+      stores: zoneStores,
+    };
+  });
+
+  const orderedZones = orderByNearest(zoneBuckets, {startHint: anchors.start, endHint: anchors.end});
+  const grouped = [];
+  const orderedStores = [];
+  let prevPoint = anchors.start;
+
+  orderedZones.forEach((zoneItem, idx) => {
+    const nextZone = orderedZones[idx + 1] || null;
+    const orderedZoneStores = orderByNearest(zoneItem.stores, {
+      startHint: prevPoint,
+      endHint: nextZone ? {x: nextZone.x, y: nextZone.y} : anchors.end,
+    });
+    grouped.push({
+      zone: zoneItem.zone,
+      def: zoneDefs[zoneItem.zone],
+      stores: orderedZoneStores,
+      centroid: {x: zoneItem.x, y: zoneItem.y},
+    });
+    orderedStores.push(...orderedZoneStores);
+    if (orderedZoneStores.length) prevPoint = orderedZoneStores[orderedZoneStores.length - 1];
+  });
+
+  return {
+    anchors,
+    orderedZones: orderedZones.map(z => ({zone: z.zone, x: z.x, y: z.y, def: zoneDefs[z.zone]})),
+    grouped,
+    orderedStores,
+    manualApplied: false,
+  };
+}
+
+function buildPlanFromOrderedStores(orderedStores) {
+  const anchors = getAnchors(orderedStores);
+  const groupedMap = new Map();
+  const zoneSequence = [];
+  orderedStores.forEach(store => {
+    if (!groupedMap.has(store.zone)) {
+      groupedMap.set(store.zone, []);
+      zoneSequence.push(store.zone);
+    }
+    groupedMap.get(store.zone).push(store);
+  });
+  const grouped = zoneSequence.map(zone => {
+    const zoneStores = groupedMap.get(zone) || [];
+    const centroid = avgPoint(zoneStores);
+    return {
+      zone,
+      def: zoneDefs[zone],
+      stores: zoneStores,
+      centroid
+    };
+  });
+  const orderedZones = grouped.map(group => ({
+    zone: group.zone,
+    x: group.centroid.x,
+    y: group.centroid.y,
+    def: zoneDefs[group.zone]
+  }));
+  return {
+    anchors,
+    orderedZones,
+    grouped,
+    orderedStores,
+    manualApplied: true,
+  };
+}
+
+function buildRoutePlan(scopedStores) {
+  const autoPlan = buildAutomaticRoutePlan(scopedStores);
+  const manuallyOrderedStores = applyManualOrder(autoPlan.orderedStores);
+  const autoKeys = autoPlan.orderedStores.map(store => storeCacheKey(store));
+  const manualKeys = manuallyOrderedStores.map(store => storeCacheKey(store));
+  const manualApplied = autoKeys.join('|') !== manualKeys.join('|');
+  if (!manualApplied) return autoPlan;
+  return {
+    ...buildPlanFromOrderedStores(manuallyOrderedStores),
+    autoOrderedStores: autoPlan.orderedStores,
+    manualApplied: true,
+  };
+}
+
+function fallbackGeoForStore(store) {
+  const zoneCenter = zoneRealDefs[store.zone] || {lat: 41.9, lng: 12.5};
+  const def = zoneDefs[store.zone];
+  const dx = (store.x - def.cx) / Math.max(def.rx, 1);
+  const dy = (store.y - def.cy) / Math.max(def.ry, 1);
+  return {
+    lat: zoneCenter.lat - dy * 0.028,
+    lng: zoneCenter.lng + dx * 0.04
+  };
+}
+
+function getStoreGeo(store, allowFallback = true) {
+  const hit = geoCache[storeCacheKey(store)];
+  if (hit && Number.isFinite(hit.lat) && Number.isFinite(hit.lng)) return {lat: hit.lat, lng: hit.lng, cached: true};
+  if (!allowFallback) return null;
+  return {...fallbackGeoForStore(store), cached: false};
+}
+
+function buildMiniMapData(plan, mode) {
+  const cachedCount = getCachedCoords(plan.orderedStores).length;
+  const coverage = plan.orderedStores.length ? cachedCount / plan.orderedStores.length : 0;
+  const preferZoneView = mode === 'zones' || (mode !== 'points' && plan.orderedStores.length > 28 && coverage < 0.62);
+  const nodeMode = preferZoneView ? 'zones' : 'stores';
+
+  const zoneGroups = getScopedZones(plan.orderedStores).map(zone => {
+    const zoneStores = plan.orderedStores.filter(store => store.zone === zone);
+    const points = zoneStores.map(store => ({store, ...getStoreGeo(store, true)})).filter(pt => pt && Number.isFinite(pt.lat) && Number.isFinite(pt.lng));
+    if (!points.length && zoneRealDefs[zone]) {
+      points.push({lat: zoneRealDefs[zone].lat, lng: zoneRealDefs[zone].lng, cached: false, store: null});
+    }
+    return {
+      zone,
+      def: zoneDefs[zone],
+      points,
+      stores: zoneStores
+    };
+  }).filter(group => group.points.length);
+
+  const nodes = nodeMode === 'zones'
+    ? plan.orderedZones.map((zoneNode, idx) => {
+        const zoneGroup = zoneGroups.find(g => g.zone === zoneNode.zone);
+        const zonePoint = zoneRealDefs[zoneNode.zone] || (zoneGroup ? avgLatLng(zoneGroup.points) : null);
+        if (!zonePoint) return null;
+        return {
+          zone: zoneNode.zone,
+          label: String(idx + 1),
+          title: `${zoneNode.zone} · ${zoneDefs[zoneNode.zone].name}`,
+          color: zoneDefs[zoneNode.zone].color,
+          lat: zonePoint.lat,
+          lng: zonePoint.lng,
+          cached: true,
+          nodeType: 'zone'
+        };
+      }).filter(Boolean)
+    : plan.orderedStores.map((store, idx) => {
+        const geo = getStoreGeo(store, true);
+        if (!geo) return null;
+        return {
+          ...store,
+          label: String(idx + 1),
+          title: `${store.insegna} — ${store.indirizzo}`,
+          color: zoneDefs[store.zone].color,
+          lat: geo.lat,
+          lng: geo.lng,
+          cached: !!geo.cached,
+          nodeType: 'store'
+        };
+      }).filter(Boolean);
+
+  const fallbackCount = Math.max(0, nodes.filter(node => node.nodeType === 'store' && !node.cached).length);
+  return {nodeMode, coverage, cachedCount, fallbackCount, nodes, zoneGroups};
+}
+
+function createGeoProjector(points, width, height, padding = 82) {
+  const valid = points.filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+  if (!valid.length) {
+    return {
+      project: () => ({x: width / 2, y: height / 2}),
+      bounds: null
+    };
+  }
+
+  let minLat = Math.min(...valid.map(point => point.lat));
+  let maxLat = Math.max(...valid.map(point => point.lat));
+  let minLng = Math.min(...valid.map(point => point.lng));
+  let maxLng = Math.max(...valid.map(point => point.lng));
+
+  if (Math.abs(maxLat - minLat) < 0.0018) {
+    minLat -= 0.0009;
+    maxLat += 0.0009;
+  }
+  if (Math.abs(maxLng - minLng) < 0.0018) {
+    minLng -= 0.0009;
+    maxLng += 0.0009;
+  }
+
+  const avgLat = (minLat + maxLat) / 2;
+  const cosLat = Math.max(Math.cos(avgLat * Math.PI / 180), 0.72);
+  const minPseudoX = minLng * cosLat;
+  const maxPseudoX = maxLng * cosLat;
+  const pseudoW = Math.max(maxPseudoX - minPseudoX, 0.0001);
+  const latH = Math.max(maxLat - minLat, 0.0001);
+  const scale = Math.min((width - padding * 2) / pseudoW, (height - padding * 2) / latH);
+  const contentW = pseudoW * scale;
+  const contentH = latH * scale;
+  const offsetX = (width - contentW) / 2 - minPseudoX * scale;
+  const offsetY = (height - contentH) / 2 + maxLat * scale;
+
+  return {
+    bounds: {minLat, maxLat, minLng, maxLng, avgLat},
+    project: (point) => ({
+      x: point.lng * cosLat * scale + offsetX,
+      y: offsetY - point.lat * scale
+    })
+  };
+}
+
+function zoneBlobFromProjectedPoints(points) {
+  if (!points.length) return null;
+  const xs = points.map(point => point.x);
+  const ys = points.map(point => point.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const spreadX = maxX - minX;
+  const spreadY = maxY - minY;
+  const rx = Math.max(spreadX / 2 + 58, points.length === 1 ? 74 : 66);
+  const ry = Math.max(spreadY / 2 + 46, points.length === 1 ? 58 : 54);
+  return {cx, cy, rx, ry};
+}
+
+function renderRouteMiniMap(plan, mode) {
+  routeMiniMap.innerHTML = "";
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const MINI_W = 1200;
+  const MINI_H = 760;
+  routeMiniMap.setAttribute('viewBox', `0 0 ${MINI_W} ${MINI_H}`);
+  routeMiniMap.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+  if (!plan.orderedStores.length) {
+    routeMiniMap.innerHTML = `<text x="600" y="380" text-anchor="middle" fill="#a8b7c9" font-size="20">Nessun percorso da visualizzare</text>`;
+    routeMiniCaption.textContent = "";
+    return;
+  }
+
+  const mini = buildMiniMapData(plan, mode);
+  const allGeoPoints = [...mini.nodes, ...mini.zoneGroups.flatMap(group => group.points)];
+  const projector = createGeoProjector(allGeoPoints, MINI_W, MINI_H, mini.nodeMode === 'zones' ? 96 : 82);
+  const nodePoints = mini.nodes.map(node => ({...node, ...projector.project(node)}));
+  const zoneShapes = mini.zoneGroups.map(group => {
+    const projectedPoints = group.points.map(point => ({...point, ...projector.project(point)}));
+    return {
+      ...group,
+      projectedPoints,
+      blob: zoneBlobFromProjectedPoints(projectedPoints)
+    };
+  }).filter(group => group.blob);
+
+  const defs = document.createElementNS(svgNS, 'defs');
+  defs.innerHTML = `
+    <linearGradient id="miniBgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#122034"/>
+      <stop offset="100%" stop-color="#0d1725"/>
+    </linearGradient>
+    <filter id="miniSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  `;
+  routeMiniMap.appendChild(defs);
+
+  const bg = document.createElementNS(svgNS, 'rect');
+  bg.setAttribute('x', '0');
+  bg.setAttribute('y', '0');
+  bg.setAttribute('width', String(MINI_W));
+  bg.setAttribute('height', String(MINI_H));
+  bg.setAttribute('fill', 'url(#miniBgGrad)');
+  routeMiniMap.appendChild(bg);
+
+  const glow = document.createElementNS(svgNS, 'ellipse');
+  glow.setAttribute('cx', String(MINI_W / 2));
+  glow.setAttribute('cy', String(MINI_H * 0.46));
+  glow.setAttribute('rx', String(MINI_W * 0.42));
+  glow.setAttribute('ry', String(MINI_H * 0.34));
+  glow.setAttribute('fill', 'rgba(120,167,255,.07)');
+  routeMiniMap.appendChild(glow);
+
+  const grid = document.createElementNS(svgNS, 'g');
+  for (let i = 1; i < 6; i++) {
+    const h = document.createElementNS(svgNS, 'line');
+    h.setAttribute('x1', '34'); h.setAttribute('x2', String(MINI_W - 34));
+    h.setAttribute('y1', String((MINI_H / 6) * i)); h.setAttribute('y2', String((MINI_H / 6) * i));
+    h.setAttribute('stroke', 'rgba(255,255,255,.045)'); h.setAttribute('stroke-width', '1');
+    grid.appendChild(h);
+    const v = document.createElementNS(svgNS, 'line');
+    v.setAttribute('y1', '34'); v.setAttribute('y2', String(MINI_H - 34));
+    v.setAttribute('x1', String((MINI_W / 6) * i)); v.setAttribute('x2', String((MINI_W / 6) * i));
+    v.setAttribute('stroke', 'rgba(255,255,255,.038)'); v.setAttribute('stroke-width', '1');
+    grid.appendChild(v);
+  }
+  routeMiniMap.appendChild(grid);
+
+  const zonesGroup = document.createElementNS(svgNS, 'g');
+  zoneShapes.forEach(group => {
+    const blob = document.createElementNS(svgNS, 'path');
+    blob.setAttribute('d', blobPath(group.blob.cx, group.blob.cy, group.blob.rx, group.blob.ry));
+    blob.setAttribute('fill', group.def.color);
+    blob.setAttribute('opacity', mini.nodeMode === 'zones' ? '0.16' : '0.12');
+    blob.setAttribute('stroke', 'rgba(255,255,255,.10)');
+    blob.setAttribute('stroke-width', '1.4');
+    zonesGroup.appendChild(blob);
+
+    const tag = document.createElementNS(svgNS, 'text');
+    tag.setAttribute('x', String(group.blob.cx));
+    tag.setAttribute('y', String(group.blob.cy - 2));
+    tag.setAttribute('text-anchor', 'middle');
+    tag.setAttribute('fill', 'rgba(255,255,255,.92)');
+    tag.setAttribute('font-size', mini.nodeMode === 'zones' ? '18' : '15');
+    tag.setAttribute('font-weight', '800');
+    tag.textContent = group.zone;
+    zonesGroup.appendChild(tag);
+  });
+  routeMiniMap.appendChild(zonesGroup);
+
+  if (nodePoints.length > 1) {
+    const halo = document.createElementNS(svgNS, 'polyline');
+    halo.setAttribute('points', nodePoints.map(node => `${node.x},${node.y}`).join(' '));
+    halo.setAttribute('fill', 'none');
+    halo.setAttribute('stroke', 'rgba(255,255,255,.14)');
+    halo.setAttribute('stroke-width', mini.nodeMode === 'zones' ? '16' : '12');
+    halo.setAttribute('stroke-linecap', 'round');
+    halo.setAttribute('stroke-linejoin', 'round');
+    routeMiniMap.appendChild(halo);
+
+    const poly = document.createElementNS(svgNS, 'polyline');
+    poly.setAttribute('points', nodePoints.map(node => `${node.x},${node.y}`).join(' '));
+    poly.setAttribute('fill', 'none');
+    poly.setAttribute('stroke', mini.nodeMode === 'zones' ? 'rgba(228,236,248,.92)' : 'rgba(199,216,237,.92)');
+    poly.setAttribute('stroke-width', mini.nodeMode === 'zones' ? '7.5' : '5.5');
+    poly.setAttribute('stroke-linecap', 'round');
+    poly.setAttribute('stroke-linejoin', 'round');
+    poly.setAttribute('opacity', '0.95');
+    poly.setAttribute('filter', 'url(#miniSoftGlow)');
+    routeMiniMap.appendChild(poly);
+  }
+
+  const centroidGeo = avgLatLng(nodePoints);
+  const centroidPoint = centroidGeo ? projector.project(centroidGeo) : {x: MINI_W / 2, y: MINI_H / 2};
+  const diamond = document.createElementNS(svgNS, 'path');
+  diamond.setAttribute('d', `M ${centroidPoint.x} ${centroidPoint.y-16} L ${centroidPoint.x+16} ${centroidPoint.y} L ${centroidPoint.x} ${centroidPoint.y+16} L ${centroidPoint.x-16} ${centroidPoint.y} Z`);
+  diamond.setAttribute('fill', '#f7fafc');
+  diamond.setAttribute('stroke', 'rgba(13,23,37,.75)');
+  diamond.setAttribute('stroke-width', '2');
+  routeMiniMap.appendChild(diamond);
+  const centroidLabel = document.createElementNS(svgNS, 'text');
+  centroidLabel.setAttribute('x', String(centroidPoint.x + 22));
+  centroidLabel.setAttribute('y', String(centroidPoint.y - 18));
+  centroidLabel.setAttribute('fill', '#edf4fb');
+  centroidLabel.setAttribute('font-size', '16');
+  centroidLabel.setAttribute('font-weight', '800');
+  centroidLabel.textContent = 'Centro';
+  routeMiniMap.appendChild(centroidLabel);
+
+  nodePoints.forEach((node, idx) => {
+    if (idx === 0 || idx === nodePoints.length - 1) {
+      const ring = document.createElementNS(svgNS, 'circle');
+      ring.setAttribute('cx', String(node.x));
+      ring.setAttribute('cy', String(node.y));
+      ring.setAttribute('r', idx === 0 ? '22' : '20');
+      ring.setAttribute('fill', 'rgba(255,255,255,.02)');
+      ring.setAttribute('stroke', idx === 0 ? 'rgba(103,178,111,.55)' : 'rgba(230,126,95,.58)');
+      ring.setAttribute('stroke-width', '4');
+      routeMiniMap.appendChild(ring);
+    }
+
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', String(node.x));
+    circle.setAttribute('cy', String(node.y));
+    circle.setAttribute('r', idx === 0 || idx === nodePoints.length - 1 ? (mini.nodeMode === 'zones' ? '16' : '13') : (mini.nodeMode === 'zones' ? '12' : '9.5'));
+    circle.setAttribute('fill', node.color);
+    circle.setAttribute('stroke', idx === 0 ? '#67b26f' : idx === nodePoints.length - 1 ? '#e67e5f' : 'rgba(255,255,255,.9)');
+    circle.setAttribute('stroke-width', idx === 0 || idx === nodePoints.length - 1 ? '3.6' : '2.1');
+    routeMiniMap.appendChild(circle);
+
+    const shouldLabel = mini.nodeMode === 'zones' || nodePoints.length <= 16 || idx === 0 || idx === nodePoints.length - 1 || idx % Math.ceil(nodePoints.length / 9) === 0;
+    if (shouldLabel) {
+      const t = document.createElementNS(svgNS, 'text');
+      t.setAttribute('x', String(node.x));
+      t.setAttribute('y', String(node.y + 4.3));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('fill', 'white');
+      t.setAttribute('font-size', mini.nodeMode === 'zones' ? '12' : '10.5');
+      t.setAttribute('font-weight', '800');
+      t.textContent = node.label;
+      routeMiniMap.appendChild(t);
+    }
+  });
+
+  const first = plan.orderedStores[0];
+  const last = plan.orderedStores[plan.orderedStores.length - 1];
+  const geoNote = mini.nodeMode === 'zones'
+    ? `lettura sintetica su ${mini.nodes.length} centroidi di zona`
+    : (mini.fallbackCount ? `geometria reale in cache per ${mini.cachedCount}/${plan.orderedStores.length} tappe, con fallback morbido sulle restanti` : `geometria reale completa sulle ${plan.orderedStores.length} tappe visibili`);
+  routeMiniCaption.textContent = `Mini mappa adattiva: il contenuto visibile viene espanso automaticamente nello spazio disponibile, così non resta più piccolo dopo la selezione delle zone. Vista corrente: ${geoNote}. Partenza suggerita su ${first.zone} · ${first.insegna}; chiusura su ${last.zone} · ${last.insegna}.`;
+}
+
+function renderRoute({refreshRealMap = true} = {}) {
+  const visibleStores = getVisibleStores();
+  const perimeterStores = getPerimeterStores();
+  const scopedStores = perimeterStores.filter(store => isStoreIncluded(store));
+  const excludedStores = perimeterStores.filter(store => !isStoreIncluded(store));
+
+  routeSummary.innerHTML = "";
+  routeBody.innerHTML = "";
+  routeOrder.innerHTML = "";
+  if (activeRouteList) activeRouteList.innerHTML = "";
+  routeContext.textContent = `Il percorso eredita i filtri superiori: ${labelForFilters(visibleStores)}. Le tappe extra cliccate fuori perimetro nella vista territoriale entrano anche qui e verranno riportate nella mappa reale quando premi Genera percorso. ${state.routeDirty ? 'Hai modifiche in sospeso: l’elenco è aggiornato, ma la mappa reale verrà riallineata solo quando premi Genera percorso.' : 'La mappa reale è già allineata con l’ordine corrente.'}`;
+
+  const perimeterCached = getCachedCoords(perimeterStores).length;
+  const extraInPerimeter = perimeterStores.filter(store => isExtraSelected(store) && !storeMatches(store)).length;
+  [
+    `${perimeterStores.length} centri nel percorso`,
+    `${scopedStores.length} inclusi nel giro`,
+    `${excludedStores.length} esclusi manualmente`,
+    `${extraInPerimeter} extra da mappa`,
+    `Cache reale ${perimeterCached}/${perimeterStores.length || 0}`
+  ].forEach(textBadge => {
+    const el = document.createElement("span");
+    el.className = "badge route-kpi";
+    el.textContent = textBadge;
+    routeSummary.appendChild(el);
+  });
+
+  if (restoreVisibleBtnTop) restoreVisibleBtnTop.style.display = excludedStores.length ? '' : 'none';
+
+  if (!perimeterStores.length) {
+    routeOrder.textContent = "Nessun percorso disponibile con i filtri correnti.";
+    if (activeRouteStatus) activeRouteStatus.textContent = "Appena il perimetro contiene punti, qui comparirà l’ordine visitabile delle tappe.";
+    if (activeRouteList) activeRouteList.innerHTML = `<div class="route-empty">Prova a cambiare zona, gruppo o testo di ricerca.</div>`;
+    routeBody.innerHTML = `<div class="route-empty">Prova a cambiare zona, gruppo o testo di ricerca.</div>`;
+    syncDirectionsButton([]);
+    clearRealMap('Nessuna anteprima reale disponibile', 'Riduci o modifica i filtri per ottenere un perimetro visitabile.');
+    requestAnimationFrame(syncActiveRouteCardHeight);
+    return;
+  }
+
+  const perimeterPlan = buildAutomaticRoutePlan(perimeterStores);
+  const excludedKeySet = new Set(excludedStores.map(store => storeCacheKey(store)));
+  const excludedOrdered = perimeterPlan.orderedStores.filter(store => excludedKeySet.has(storeCacheKey(store)));
+
+  let plan = null;
+  if (scopedStores.length) {
+    plan = buildRoutePlan(scopedStores);
+    const zoneLine = plan.orderedZones.map(z => `${z.zone} · ${zoneDefs[z.zone].name}`).join(" → ");
+    const first = plan.orderedStores[0];
+    const last = plan.orderedStores[plan.orderedStores.length - 1];
+    const approxLen = polyLength(plan.orderedStores);
+    const modeLabel = state.routeDirty ? 'Modifiche in sospeso' : (plan.manualApplied ? 'Ordine manuale attivo' : 'Ordine intelligente attivo');
+    routeOrder.innerHTML = `Sequenza attiva: <strong>${zoneLine}</strong><br>Partenza da <strong>${esc(first.insegna)}</strong>, ${esc(first.indirizzo)}. Chiusura su <strong>${esc(last.insegna)}</strong>, ${esc(last.indirizzo)}. Sviluppo stimato sulla mappa schematica: <strong>${approxLen}</strong> unità.<div class="route-selection-note"><strong>${modeLabel}</strong>. L’elenco accanto alla mappa governa direttamente numeri, tracciato e link rapidi. Puoi trascinare le tappe oppure usare le frecce per cambiarne l’ordine. ${state.routeDirty ? 'Premi Genera percorso per riallineare la cartografia reale oppure Genera percorso automatico per ricalcolare anche l’ordine migliore.' : ''}</div>`;
+    syncDirectionsButton(plan.orderedStores);
+    if (activeRouteStatus) {
+      activeRouteStatus.textContent = state.routeDirty
+        ? `Hai ${plan.orderedStores.length} tappe già ordinate, incluse eventuali extra da mappa. Continua pure a spostarle: la mappa reale aspetta il comando Genera percorso.`
+        : (plan.manualApplied
+          ? `Ordine manuale attivo su ${plan.orderedStores.length} tappe. La mappa reale è allineata.`
+          : `Ordine intelligente attivo su ${plan.orderedStores.length} tappe. Puoi trascinare o usare le frecce per personalizzarlo.`);
+    }
+  } else {
+    routeOrder.innerHTML = `Hai escluso manualmente tutti i centri attualmente presenti nel percorso. La mappa reale li mostrerà di nuovo appena reincludi almeno una tappa.`;
+    syncDirectionsButton([]);
+    if (activeRouteStatus) activeRouteStatus.textContent = "Nessun centro incluso al momento. Reincludi almeno una tappa per costruire di nuovo il giro.";
+  }
+
+  if (refreshRealMap) {
+    renderRealRoutePreview(plan || {orderedStores: [], orderedZones: []}, 'points', perimeterStores);
+  } else {
+    setPendingRealMapState(plan || {orderedStores: [], orderedZones: []}, perimeterStores);
+  }
+
+  if (activeRouteList) {
+    const includedHtml = scopedStores.length ? plan.orderedStores.map((store, i) => {
+        const key = storeCacheKey(store);
+        const isExtra = isExtraSelected(store) && !storeMatches(store);
+        return `
+          <div class="route-step is-included active-step" draggable="true" data-route-key="${esc(key)}">
+            <div class="route-step-top">
+              <div>
+                <div class="route-step-badges">
+                  <span class="route-step-order">${i + 1}</span>
+                  <span class="badge"><span class="route-store-dot included"></span>${store.zone}</span>
+                  <span class="badge">PdV Group ${store.group}</span>
+                  ${isExtra ? '<span class="badge">Extra da mappa</span>' : ''}
+                </div>
+                <h4 style="margin-top:10px;">${esc(store.insegna)}</h4>
+                <p>${esc(store.indirizzo)}</p>
+                <div class="route-step-note-inline">${isExtra ? 'Tappa extra selezionata dalla vista territoriale' : (plan.manualApplied ? 'Ordine personalizzato da te' : 'Ordine intelligente suggerito')}</div>
+              </div>
+              <div class="route-reorder-actions">
+                <span class="route-step-handle" title="Trascina per riposizionare">⋮⋮</span>
+                <button class="toggle-center-btn route-reorder-btn" type="button" data-route-move="${esc(key)}" data-route-dir="-1" ${i === 0 ? 'disabled' : ''}>↑</button>
+                <button class="toggle-center-btn route-reorder-btn" type="button" data-route-move="${esc(key)}" data-route-dir="1" ${i === plan.orderedStores.length - 1 ? 'disabled' : ''}>↓</button>
+                <button class="toggle-center-btn exclude" type="button" data-store-toggle="${esc(key)}" data-store-action="exclude">Escludi</button>
+                <a class="mapbtn" href="${store.mapsUrl}" target="_blank" rel="noopener">Apri tappa</a>
+              </div>
+            </div>
+          </div>`;
+      }).join('') : `<div class="route-empty">Nessun centro è attualmente incluso nel giro. Reincludi almeno una tappa per costruire di nuovo il giro.</div>`;
+
+    const excludedHtml = excludedOrdered.length ? `<div class="route-inline-section-title">Escluse</div>` + excludedOrdered.map(store => {
+      const key = storeCacheKey(store);
+      const isExtra = isExtraSelected(store) && !storeMatches(store);
+      return `
+        <div class="route-step is-excluded">
+          <div class="route-step-top">
+            <div>
+              <div class="route-step-badges">
+                <span class="badge"><span class="route-store-dot excluded"></span>${store.zone}</span>
+                <span class="badge">PdV Group ${store.group}</span>
+                ${isExtra ? '<span class="badge">Extra da mappa</span>' : ''}
+              </div>
+              <h4 style="margin-top:10px;">${esc(store.insegna)}</h4>
+              <p>${esc(store.indirizzo)}</p>
+            </div>
+            <div class="route-step-actions">
+              <span class="route-state-pill excluded">Escluso</span>
+              <button class="toggle-center-btn include" type="button" data-store-toggle="${esc(key)}" data-store-action="include">Reincludi</button>
+              <a class="mapbtn" href="${store.mapsUrl}" target="_blank" rel="noopener">Google Maps</a>
+            </div>
+          </div>
+        </div>`;
+    }).join('') : '';
+
+    activeRouteList.innerHTML = `<div class="route-step-list-flat">${includedHtml}${excludedHtml}</div>`;
+  }
+
+  routeBody.innerHTML = '';
+  requestAnimationFrame(syncActiveRouteCardHeight);
+}
+function render({forceRouteMap = false} = {}) {
+  renderTopFilters();
+  renderZones();
+  renderMarkers();
+  renderPanel();
+  renderRoute({refreshRealMap: forceRouteMap || !state.routeDirty});
+  syncRouteGenerationUI();
+}
+
+searchInput.addEventListener("input", e => {
+  state.search = e.target.value;
+  markRouteDirty('ricerca aggiornata');
+  render();
+});
+if (forceCacheBtn) {
+  forceCacheBtn.addEventListener("click", () => {
+    forceGeoCacheRebuild();
+  });
+}
+if (generateRouteBtn) generateRouteBtn.addEventListener('click', generateRouteNow);
+if (generateAutoRouteBtn) generateAutoRouteBtn.addEventListener('click', generateAutomaticRoute);
+
+document.addEventListener("click", (event) => {
+  const toggleBtn = event.target.closest("[data-store-toggle]");
+  if (toggleBtn) {
+    const key = toggleBtn.getAttribute("data-store-toggle");
+    const action = toggleBtn.getAttribute("data-store-action");
+    setStoreIncludedByKey(key, action === "include");
+    return;
+  }
+  const restoreBtn = event.target.closest("#restoreVisibleBtn");
+  if (restoreBtn) {
+    clearExcludedForVisibleStores();
+    return;
+  }
+  const restoreTopBtn = event.target.closest("#restoreVisibleBtnTop");
+  if (restoreTopBtn) {
+    clearExcludedForVisibleStores();
+    return;
+  }
+  const moveBtn = event.target.closest("[data-route-move]");
+  if (moveBtn) {
+    const key = moveBtn.getAttribute("data-route-move");
+    const dir = Number(moveBtn.getAttribute("data-route-dir") || "0");
+    moveStoreWithinVisible(key, dir);
+    return;
+  }
+});
+
+document.addEventListener("dragstart", (event) => {
+  const step = event.target.closest(".active-step[data-route-key]");
+  if (!step) return;
+  step.classList.add("dragging");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", step.getAttribute("data-route-key"));
+});
+
+function clearDropHints() {
+  document.querySelectorAll('.active-step.drop-target, .active-step.drop-before, .active-step.drop-after').forEach(node => {
+    node.classList.remove('drop-target', 'drop-before', 'drop-after');
+    delete node.dataset.dropPosition;
+  });
+}
+
+document.addEventListener("dragend", (event) => {
+  const step = event.target.closest(".active-step[data-route-key]");
+  if (step) step.classList.remove("dragging");
+  clearDropHints();
+});
+
+document.addEventListener("dragover", (event) => {
+  const target = event.target.closest(".active-step[data-route-key]");
+  if (!target) return;
+  event.preventDefault();
+  const rect = target.getBoundingClientRect();
+  const before = (event.clientY - rect.top) < rect.height / 2;
+  document.querySelectorAll('.active-step[data-route-key]').forEach(node => {
+    if (node !== target) node.classList.remove('drop-target', 'drop-before', 'drop-after');
+  });
+  target.classList.add('drop-target');
+  target.classList.toggle('drop-before', before);
+  target.classList.toggle('drop-after', !before);
+  target.dataset.dropPosition = before ? 'before' : 'after';
+});
+
+document.addEventListener("dragleave", (event) => {
+  const target = event.target.closest(".active-step[data-route-key]");
+  if (!target) return;
+  if (!target.contains(event.relatedTarget)) {
+    target.classList.remove('drop-target', 'drop-before', 'drop-after');
+    delete target.dataset.dropPosition;
+  }
+});
+
+document.addEventListener("drop", (event) => {
+  const target = event.target.closest(".active-step[data-route-key]");
+  if (!target) return;
+  event.preventDefault();
+  const sourceKey = event.dataTransfer.getData("text/plain");
+  const targetKey = target.getAttribute("data-route-key");
+  const position = target.dataset.dropPosition || 'before';
+  clearDropHints();
+  reorderStoreWithinVisible(sourceKey, targetKey, position);
+});
+
+updateGeoCacheStatus();
+render();
+</script>
+</body>
+</html>
