@@ -827,6 +827,39 @@ svg { width:100%; height:100%; display:block; }
   font-weight:800;
   box-shadow:0 4px 10px rgba(0,0,0,.2);
 }
+.real-route-label.named-stop-label {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.real-route-label .route-label-box {
+  display:grid;
+  gap:2px;
+  min-width: 170px;
+  max-width: 260px;
+  padding:7px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.96);
+  border:1px solid rgba(24,34,51,.12);
+  box-shadow: 0 10px 20px rgba(73,98,130,.16);
+}
+.real-route-label .route-label-box strong {
+  font-size: 11px;
+  line-height: 1.2;
+  color:#182233;
+  font-weight:800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.real-route-label .route-label-box span {
+  font-size: 10px;
+  line-height: 1.25;
+  color:#5d6b7a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .real-point-tooltip {
   background: rgba(255,255,255,.97);
   border:1px solid rgba(255,255,255,.14);
@@ -1795,28 +1828,32 @@ function appendManualOrderKeyToEnd(key) {
   saveManualOrderState();
 }
 
+function getStoreDirectionsQuery(store) {
+  if (!store) return '';
+  return `${store.insegna}, ${normalizeAddress(store.indirizzo)}, Roma, Italia`;
+}
+
 function buildDirectionsUrlForStores(storeList) {
   if (!Array.isArray(storeList) || storeList.length < 2) return null;
-  const nodes = storeList.map(store => {
-    const geo = getStoreGeo(store, true);
-    if (!geo) return null;
-    return {lat: geo.lat, lng: geo.lng};
-  }).filter(Boolean);
-  return buildDirectionsUrl(nodes);
+  const trimmed = storeList.slice(0, 10);
+  const destination = getStoreDirectionsQuery(trimmed[trimmed.length - 1]);
+  const middle = trimmed.slice(0, -1).map(getStoreDirectionsQuery).filter(Boolean).join('|');
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+  if (middle) url += `&waypoints=${encodeURIComponent(middle)}`;
+  return url;
 }
 
 function syncDirectionsButton(storeList = []) {
   if (!openDirectionsBtn) return;
   const firstStop = Array.isArray(storeList) && storeList.length ? storeList[0] : null;
   const previewUrl = buildDirectionsUrlForStores(storeList);
-  const directUrl = buildDirectNavigationUrl(firstStop);
   openDirectionsBtn.style.display = '';
-  if (directUrl || previewUrl) {
-    openDirectionsBtn.href = previewUrl || directUrl || '#';
-    openDirectionsBtn.dataset.directUrl = directUrl || '';
-    openDirectionsBtn.dataset.fallbackUrl = previewUrl || directUrl || '';
+  if (previewUrl) {
+    openDirectionsBtn.href = previewUrl;
+    openDirectionsBtn.dataset.directUrl = '';
+    openDirectionsBtn.dataset.fallbackUrl = previewUrl;
     openDirectionsBtn.dataset.firstStopLabel = firstStop ? `${firstStop.insegna} — ${firstStop.indirizzo}` : '';
-    openDirectionsBtn.title = firstStop ? `Avvia verso la prima tappa: ${firstStop.insegna}` : 'Apri Google Maps';
+    openDirectionsBtn.title = firstStop ? `Apri l’itinerario su Google Maps verso la prima tappa: ${firstStop.insegna}` : 'Apri Google Maps';
     openDirectionsBtn.setAttribute('aria-disabled', 'false');
     openDirectionsBtn.classList.remove('is-disabled');
   } else {
@@ -2038,40 +2075,19 @@ function buildDirectionsUrl(nodes) {
   const trimmed = nodes.slice(0, 10);
   const destination = `${trimmed[trimmed.length - 1].lat},${trimmed[trimmed.length - 1].lng}`;
   const middle = trimmed.slice(0, -1).map(node => `${node.lat},${node.lng}`).join('|');
-  let url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving&dir_action=navigate`;
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving`;
   if (middle) url += `&waypoints=${encodeURIComponent(middle)}`;
   return url;
 }
 
-function detectMobilePlatform() {
-  const ua = navigator.userAgent || '';
-  return {
-    android: /Android/i.test(ua),
-    ios: /iPhone|iPad|iPod/i.test(ua),
-    mobile: /Android|iPhone|iPad|iPod/i.test(ua)
-  };
+function getStoreRouteLabel(store, activeIndex) {
+  return String(activeIndex);
 }
 
-function buildDirectNavigationUrl(store) {
-  if (!store) return null;
-  const geo = getStoreGeo(store, true);
-  const query = geo && Number.isFinite(geo.lat) && Number.isFinite(geo.lng)
-    ? `${geo.lat},${geo.lng}`
-    : `${store.indirizzo}, Roma, Italia`;
-  const platform = detectMobilePlatform();
-  if (platform.android) {
-    return `google.navigation:q=${encodeURIComponent(query)}&mode=d`;
-  }
-  if (platform.ios) {
-    return `comgooglemaps://?daddr=${encodeURIComponent(query)}&directionsmode=driving`;
-  }
-  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}&travelmode=driving&dir_action=navigate`;
-}
-
-function makeMapLabel(text) {
+function makeMapLabel(store, activeIndex) {
   return L.divIcon({
     className: 'real-route-label',
-    html: esc(text),
+    html: getStoreRouteLabel(store, activeIndex),
     iconSize: null
   });
 }
@@ -2185,7 +2201,7 @@ async function renderRealRoutePreview(plan, effectiveMode, visibleStores = getVi
     marker.bindPopup(`<strong>${esc(node.insegna)}</strong><br>${esc(node.indirizzo)}<br><span style="color:#64748b">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'incluso nel giro' : 'escluso dal giro'}</span><br><span style="color:#64748b">${node.cached ? 'Coordinate reali in cache locale' : 'Posizionamento provvisorio in attesa della cache reale'}</span>`);
 
     if (activeIndex) {
-      L.marker([node.lat, node.lng], {icon: makeMapLabel(String(activeIndex))}).addTo(realMapLayer);
+      L.marker([node.lat, node.lng], {icon: makeMapLabel(node, activeIndex)}).addTo(realMapLayer);
     } else if (excludedNodes.length <= 14) {
       L.marker([node.lat, node.lng], {icon: L.divIcon({className: 'real-route-label excluded-label', html: '×', iconSize: null})}).addTo(realMapLayer);
     }
@@ -2203,7 +2219,7 @@ async function renderRealRoutePreview(plan, effectiveMode, visibleStores = getVi
   setTimeout(() => realMap.invalidateSize(), 0);
 
   routeRealStatus.innerHTML = `<span class="route-live-note"><span class="route-live-dot"></span>${activeNodes.length} inclusi · ${excludedNodes.length} esclusi · cache reale ${coverage}</span>`;
-  routeRealCaption.textContent = `Anteprima reale completa del perimetro visibile: tutti i centri restano mostrati sulla cartografia, ma il tracciato blu usa solo quelli inclusi nel giro. Passando il mouse sopra ogni marker vedi subito il centro, poi puoi rifinire l’ordine nell’elenco laterale.`;
+  routeRealCaption.textContent = `Anteprima reale completa del perimetro visibile: tutti i centri restano mostrati sulla cartografia, ma il tracciato blu usa solo quelli inclusi nel giro. Ogni tappa inclusa mostra direttamente il nome del centro e la via, così riconosci subito dove stai andando.`;
   syncDirectionsButton(plan && plan.orderedStores ? plan.orderedStores : []);
 }
 
@@ -3172,29 +3188,7 @@ if (openDirectionsBtn) {
     const disabled = openDirectionsBtn.getAttribute('aria-disabled') === 'true';
     if (disabled) {
       event.preventDefault();
-      return;
     }
-    const directUrl = openDirectionsBtn.dataset.directUrl || '';
-    const fallbackUrl = openDirectionsBtn.dataset.fallbackUrl || openDirectionsBtn.href || '';
-    const platform = detectMobilePlatform();
-    if (!platform.mobile || !directUrl) return;
-    event.preventDefault();
-    let fallbackTimer = null;
-    const openFallback = () => {
-      if (!fallbackUrl) return;
-      window.location.href = fallbackUrl;
-    };
-    const handleVisibility = () => {
-      if (document.hidden && fallbackTimer) {
-        clearTimeout(fallbackTimer);
-        fallbackTimer = null;
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility, {once: true});
-    fallbackTimer = window.setTimeout(() => {
-      if (!document.hidden) openFallback();
-    }, platform.ios ? 900 : 700);
-    window.location.href = directUrl;
   });
 }
 
