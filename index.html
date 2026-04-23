@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -846,7 +847,6 @@ svg { width:100%; height:100%; display:block; }
 .real-point-tooltip .tiptitle { font-size:13px; font-weight:800; color:#182233; }
 .real-point-tooltip .tipaddr { font-size:12px; line-height:1.42; color:#475569; }
 .real-point-tooltip .tipmeta { font-size:11px; color:#a8b7c9; }
-.real-point-tooltip .tipaction { font-size:11px; color:#18874a; }
 .real-route-label.excluded-label {
   background:#f2f5f9;
   color:#6b7280;
@@ -1317,14 +1317,14 @@ html, body {
       <input id="search" type="text" placeholder="Es. Tuscolana, Conad, Ostia, Laurentina…">
     </div>
     <div class="control">
-      <label>Filtro PdV Group</label>
-      <div class="filter-group" id="groupFilter"></div>
-      <div class="filter-meta" id="groupFilterMeta">Se non selezioni nulla, restano inclusi tutti i gruppi.</div>
-    </div>
-    <div class="control">
       <label>Zone operative</label>
       <div class="filter-group" id="zoneFilter"></div>
       <div class="filter-meta" id="zoneFilterMeta">Le zone si selezionano qui sopra oppure cliccando la mappa; il pannello laterale sotto le riporta solo in elenco.</div>
+    </div>
+    <div class="control">
+      <label>Filtro PdV Group</label>
+      <div class="filter-group" id="groupFilter"></div>
+      <div class="filter-meta" id="groupFilterMeta">Se non selezioni nulla, restano inclusi tutti i gruppi.</div>
     </div>
   </div>
 
@@ -1416,7 +1416,7 @@ html, body {
                 <button class="mapbtn routegen-btn" id="generateRouteBtn" type="button" disabled>Genera percorso</button>
                 <button class="toggle-center-btn include secondary" id="generateAutoRouteBtn" type="button">Genera percorso automatico</button>
                 <button class="toggle-center-btn" id="restoreVisibleBtnTop" type="button">Reincludi tutti i visibili</button>
-                <a class="mapbtn gmaps-btn is-disabled" id="openDirectionsBtn" href="#" target="_blank" rel="noopener" aria-disabled="true"><span>Apri Itinerario Google Maps</span></a>
+                <a class="mapbtn gmaps-btn is-disabled" id="openDirectionsBtn" href="#" rel="noopener" aria-disabled="true"><span>Apri Itinerario Google Maps</span></a>
               </div>
               <div class="route-active-list" id="activeRouteList"></div>
             </div>
@@ -1807,14 +1807,24 @@ function buildDirectionsUrlForStores(storeList) {
 
 function syncDirectionsButton(storeList = []) {
   if (!openDirectionsBtn) return;
-  const url = buildDirectionsUrlForStores(storeList);
+  const firstStop = Array.isArray(storeList) && storeList.length ? storeList[0] : null;
+  const previewUrl = buildDirectionsUrlForStores(storeList);
+  const directUrl = buildDirectNavigationUrl(firstStop);
   openDirectionsBtn.style.display = '';
-  if (url) {
-    openDirectionsBtn.href = url;
+  if (directUrl || previewUrl) {
+    openDirectionsBtn.href = previewUrl || directUrl || '#';
+    openDirectionsBtn.dataset.directUrl = directUrl || '';
+    openDirectionsBtn.dataset.fallbackUrl = previewUrl || directUrl || '';
+    openDirectionsBtn.dataset.firstStopLabel = firstStop ? `${firstStop.insegna} — ${firstStop.indirizzo}` : '';
+    openDirectionsBtn.title = firstStop ? `Avvia verso la prima tappa: ${firstStop.insegna}` : 'Apri Google Maps';
     openDirectionsBtn.setAttribute('aria-disabled', 'false');
     openDirectionsBtn.classList.remove('is-disabled');
   } else {
     openDirectionsBtn.href = '#';
+    openDirectionsBtn.dataset.directUrl = '';
+    openDirectionsBtn.dataset.fallbackUrl = '';
+    openDirectionsBtn.dataset.firstStopLabel = '';
+    openDirectionsBtn.title = 'Percorso non disponibile';
     openDirectionsBtn.setAttribute('aria-disabled', 'true');
     openDirectionsBtn.classList.add('is-disabled');
   }
@@ -2026,12 +2036,36 @@ async function geocodeStoresLimited(storesToResolve, concurrency = 3) {
 function buildDirectionsUrl(nodes) {
   if (!nodes || nodes.length < 2) return null;
   const trimmed = nodes.slice(0, 10);
-  const origin = `${trimmed[0].lat},${trimmed[0].lng}`;
   const destination = `${trimmed[trimmed.length - 1].lat},${trimmed[trimmed.length - 1].lng}`;
-  const middle = trimmed.slice(1, -1).map(node => `${node.lat},${node.lng}`).join('|');
-  let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+  const middle = trimmed.slice(0, -1).map(node => `${node.lat},${node.lng}`).join('|');
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving&dir_action=navigate`;
   if (middle) url += `&waypoints=${encodeURIComponent(middle)}`;
   return url;
+}
+
+function detectMobilePlatform() {
+  const ua = navigator.userAgent || '';
+  return {
+    android: /Android/i.test(ua),
+    ios: /iPhone|iPad|iPod/i.test(ua),
+    mobile: /Android|iPhone|iPad|iPod/i.test(ua)
+  };
+}
+
+function buildDirectNavigationUrl(store) {
+  if (!store) return null;
+  const geo = getStoreGeo(store, true);
+  const query = geo && Number.isFinite(geo.lat) && Number.isFinite(geo.lng)
+    ? `${geo.lat},${geo.lng}`
+    : `${store.indirizzo}, Roma, Italia`;
+  const platform = detectMobilePlatform();
+  if (platform.android) {
+    return `google.navigation:q=${encodeURIComponent(query)}&mode=d`;
+  }
+  if (platform.ios) {
+    return `comgooglemaps://?daddr=${encodeURIComponent(query)}&directionsmode=driving`;
+  }
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}&travelmode=driving&dir_action=navigate`;
 }
 
 function makeMapLabel(text) {
@@ -2146,10 +2180,9 @@ async function renderRealRoutePreview(plan, effectiveMode, visibleStores = getVi
       opacity: 0.98
     }).addTo(realMapLayer);
 
-    marker.on('click', () => toggleStoreInclusion(node.store));
-    const hoverLabel = `<div class="tipbox"><div class="tiptitle">${activeIndex ? `${activeIndex}. ` : ''}${esc(node.insegna)}</div><div class="tipaddr">${esc(node.indirizzo)}</div><div class="tipmeta">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'nel giro' : 'fuori giro'}</div><div class="tipaction">${node.included ? 'Clic per escludere dal giro' : 'Clic per reincludere nel giro'}</div></div>`;
+    const hoverLabel = `<div class="tipbox"><div class="tiptitle">${activeIndex ? `${activeIndex}. ` : ''}${esc(node.insegna)}</div><div class="tipaddr">${esc(node.indirizzo)}</div><div class="tipmeta">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'nel giro' : 'fuori giro'}</div></div>`;
     marker.bindTooltip(hoverLabel, {sticky: true, direction: 'top', opacity: .98, className: 'real-point-tooltip'});
-    marker.bindPopup(`<strong>${esc(node.insegna)}</strong><br>${esc(node.indirizzo)}<br><span style="color:#64748b">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'incluso nel giro' : 'escluso dal giro'}</span><br><span style="color:#64748b">${node.cached ? 'Coordinate reali in cache locale' : 'Posizionamento provvisorio in attesa della cache reale'}</span><br><span style="color:#4f46e5">Clic diretto sul marker per cambiare stato.</span>`);
+    marker.bindPopup(`<strong>${esc(node.insegna)}</strong><br>${esc(node.indirizzo)}<br><span style="color:#64748b">${esc(node.zone)} · PdV Group ${esc(node.group)} · ${node.included ? 'incluso nel giro' : 'escluso dal giro'}</span><br><span style="color:#64748b">${node.cached ? 'Coordinate reali in cache locale' : 'Posizionamento provvisorio in attesa della cache reale'}</span>`);
 
     if (activeIndex) {
       L.marker([node.lat, node.lng], {icon: makeMapLabel(String(activeIndex))}).addTo(realMapLayer);
@@ -2243,11 +2276,13 @@ function renderTopFilters() {
   groupFilter.innerHTML = '';
   [['all', 'Tutti'], ['1', 'Group 1'], ['2', 'Group 2'], ['3', 'Group 3']].forEach(([value, label]) => {
     const btn = document.createElement('button');
-    const count = value === 'all' ? stores.filter(store => storeMatches(store, {ignoreGroups: true})).length : groupCount(value);
+    const hasVisibleStores = value === 'all'
+      ? stores.some(store => storeMatches(store, {ignoreGroups: true}))
+      : groupCount(value) > 0;
     const isAll = value === 'all';
     const active = isAll ? !state.groups.length : state.groups.includes(value);
-    btn.className = 'filter-chip' + (active ? ' active' : '') + (count === 0 && !active ? ' muted' : '');
-    btn.textContent = isAll ? `${label} (${count})` : `${label} · ${count}`;
+    btn.className = 'filter-chip' + (active ? ' active' : '') + (!hasVisibleStores && !active ? ' muted' : '');
+    btn.textContent = label;
     btn.addEventListener('click', () => isAll ? clearGroups() : toggleGroup(value));
     groupFilter.appendChild(btn);
   });
@@ -2257,17 +2292,17 @@ function renderTopFilters() {
 
   zoneFilter.innerHTML = '';
   const allZoneBtn = document.createElement('button');
-  const allVisibleByOtherFilters = stores.filter(store => storeMatches(store, {ignoreZones: true})).length;
-  allZoneBtn.className = 'filter-chip' + (!state.zones.length ? ' active' : '');
-  allZoneBtn.textContent = `Tutte (${allVisibleByOtherFilters})`;
+  const allVisibleByOtherFilters = stores.some(store => storeMatches(store, {ignoreZones: true}));
+  allZoneBtn.className = 'filter-chip' + (!state.zones.length ? ' active' : '') + (!allVisibleByOtherFilters && state.zones.length ? ' muted' : '');
+  allZoneBtn.textContent = 'Tutte';
   allZoneBtn.addEventListener('click', clearZones);
   zoneFilter.appendChild(allZoneBtn);
 
   zoneOrder.forEach(zone => {
-    const count = zoneCountForFilter(zone);
+    const hasVisibleStores = zoneCountForFilter(zone) > 0;
     const btn = document.createElement('button');
-    btn.className = 'filter-chip' + (state.zones.includes(zone) ? ' active' : '') + (count === 0 && !state.zones.includes(zone) ? ' muted' : '');
-    btn.innerHTML = `<strong>${zone}</strong> · ${count}`;
+    btn.className = 'filter-chip' + (state.zones.includes(zone) ? ' active' : '') + (!hasVisibleStores && !state.zones.includes(zone) ? ' muted' : '');
+    btn.innerHTML = `<strong>${zone}</strong>`;
     btn.addEventListener('click', () => toggleZone(zone));
     zoneFilter.appendChild(btn);
   });
@@ -3132,6 +3167,36 @@ if (forceCacheBtn) {
 }
 if (generateRouteBtn) generateRouteBtn.addEventListener('click', generateRouteNow);
 if (generateAutoRouteBtn) generateAutoRouteBtn.addEventListener('click', generateAutomaticRoute);
+if (openDirectionsBtn) {
+  openDirectionsBtn.addEventListener('click', (event) => {
+    const disabled = openDirectionsBtn.getAttribute('aria-disabled') === 'true';
+    if (disabled) {
+      event.preventDefault();
+      return;
+    }
+    const directUrl = openDirectionsBtn.dataset.directUrl || '';
+    const fallbackUrl = openDirectionsBtn.dataset.fallbackUrl || openDirectionsBtn.href || '';
+    const platform = detectMobilePlatform();
+    if (!platform.mobile || !directUrl) return;
+    event.preventDefault();
+    let fallbackTimer = null;
+    const openFallback = () => {
+      if (!fallbackUrl) return;
+      window.location.href = fallbackUrl;
+    };
+    const handleVisibility = () => {
+      if (document.hidden && fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility, {once: true});
+    fallbackTimer = window.setTimeout(() => {
+      if (!document.hidden) openFallback();
+    }, platform.ios ? 900 : 700);
+    window.location.href = directUrl;
+  });
+}
 
 document.addEventListener("click", (event) => {
   const toggleBtn = event.target.closest("[data-store-toggle]");
